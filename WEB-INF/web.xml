@@ -27,14 +27,14 @@
   <description>
      Welcome to Tomcat
   </description>
-  <!--servlet>
-	<servlet-name>hello</servlet-name>
-	<servlet-class>Banking</servlet-class>
+  <servlet>
+	<servlet-name>DB</servlet-name>
+	<servlet-class>DatabaseServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>
-	<servlet-name>hello</servlet-name>
-	<url-pattern>/login</url-pattern>
+	<servlet-name>DB</servlet-name>
+	<url-pattern>/get_table</url-pattern>
 	<url-pattern>/</url-pattern>
-  </servlet-mapping-->
+  </servlet-mapping>
 </web-app>
