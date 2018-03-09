@@ -30,12 +30,9 @@ public class DatabaseServlet extends HttpServlet{
 			DatabaseMetaData dbm = conn.getMetaData();
 			ResultSet tables = dbm.getTables(null, null, table_name, null);
 			if (tables.next()) {
-				getServletContext().log("Table exists");
 				Statement stmt = conn.createStatement(); 
 				ResultSet rs = stmt.executeQuery("select * from "+table_name);
-				getServletContext().log("The result of the query is "+rs);
 				ResultSetMetaData rsmd = rs.getMetaData();              
-				System.out.println("Total columns: "+rsmd.getColumnCount()); 
 				System.out.println();
 				JSONObject obj = new JSONObject();
 				JSONArray col = new JSONArray();
