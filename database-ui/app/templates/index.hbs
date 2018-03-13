@@ -30,17 +30,21 @@ table {
 </div>
 </center-->
 <table>
-  <tr>
-    {{#each model.col as |post|}}
-    <th>
-      {{post}}
-    </th>
+  <thead id="tablehead">
+    <tr>
+      {{#each model.col as |post|}}
+      <th>
+        {{post}}
+      </th>
+      {{/each}}
+    </tr>
+  </thead>
+  <tbody id = "tablebody">
+    {{#each model.row as |post|}}
+      {{#blog-post post=post}}
+      {{/blog-post}}
     {{/each}}
-  </tr>
-  {{#each model.row as |post|}}
-    {{#blog-post post=post}}
-    {{/blog-post}}
-  {{/each}}
+  </tbody>
 </table>
 </div>
 </center>

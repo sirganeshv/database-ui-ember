@@ -24,7 +24,8 @@ export default Controller.extend({
           }
           else {
             that.set('message','');
-            $('#tablediv').css("display","initial");
+          }
+            /*$('#tablediv').css("display","initial");
             var header = table.createTHead();
             var row = header.insertRow(0);
             for(var i = 0; i < data.col.length;i++) {
@@ -38,7 +39,7 @@ export default Controller.extend({
                 cell1.innerHTML = data.row[i][j];
               }
             }
-          }
+          }*/
       }).catch(function(error){
         alert(JSON.stringify(error));
       });

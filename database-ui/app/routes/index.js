@@ -31,3 +31,21 @@ export default Route.extend({
     }
   }
 });
+
+/*<table id="table">
+  <thead id="tablehead">
+    <tr>
+      {{#each model.col as |post|}}
+      <th>
+        {{post}}
+      </th>
+      {{/each}}
+    </tr>
+  </thead>
+  <tbody id = "tablebody">
+    {{#each model.row as |post|}}
+      {{#blog-post post=post}}
+      {{/blog-post}}
+    {{/each}}
+  </tbody>
+</table>*/
