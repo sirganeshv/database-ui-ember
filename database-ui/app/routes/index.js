@@ -16,36 +16,13 @@ export default Route.extend({
         body: 'Ok ok',
         rate: 5000
       }];*/
-      var data = this.controllerFor('index').get('tableData');
-    //this.get('store').pushPayload('todo',data);
-    //return this.get('store').peekAll('todo');
+    var data = this.controllerFor('index').get('tableData');
     return this.controllerFor('index').get('tableData');
   },
   actions : {
     tesst() {
-      //this.modelFor('index').reload();
-      //alert(JSON.stringify(this.controllerFor('index').get('tableData')));
       var data =this.controllerFor('index').get('tableData');
-      //alert(data.col[0]);
       this.refresh();
     }
   }
 });
-
-/*<table id="table">
-  <thead id="tablehead">
-    <tr>
-      {{#each model.col as |post|}}
-      <th>
-        {{post}}
-      </th>
-      {{/each}}
-    </tr>
-  </thead>
-  <tbody id = "tablebody">
-    {{#each model.row as |post|}}
-      {{#blog-post post=post}}
-      {{/blog-post}}
-    {{/each}}
-  </tbody>
-</table>*/

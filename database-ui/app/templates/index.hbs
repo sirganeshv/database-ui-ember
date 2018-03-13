@@ -32,16 +32,16 @@ table {
 <table>
   <thead id="tablehead">
     <tr>
-      {{#each model.col as |post|}}
+      {{#each model.col as |col|}}
       <th>
-        {{post}}
+        {{col}}
       </th>
       {{/each}}
     </tr>
   </thead>
   <tbody id = "tablebody">
-    {{#each model.row as |post|}}
-      {{#blog-post post=post}}
+    {{#each model.row as |row|}}
+      {{#blog-post row=row}}
       {{/blog-post}}
     {{/each}}
   </tbody>

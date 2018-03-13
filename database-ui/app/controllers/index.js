@@ -45,25 +45,7 @@ export default Controller.extend({
       });
     },
   test() {
-    /*var peop = [{
-      title: 'Grand Old Mansion',
-      body: 'it is a good mansion',
-      rate: [
-        4300,4500]
-    }, {
-      title: 'Urban Living',
-      body: 'Not bad',
-      rate: [4500,3231]
-    }, {
-      title: 'Downtown Charm',
-      body: 'Ok ok',
-      rate: [5000,3223]
-    }];
-    this.set('tableData',peop);*/
-    //this.transitionToRoute('/index',model);
-    //alert('test');
     var tableData = data;
-    //alert(tableData.col[0]);
     this.set('tableData',tableData);
   }
 }
