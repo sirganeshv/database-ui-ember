@@ -25,4 +25,10 @@ table {
 	</table>
   {{message}}
 </div>
+<button {{action "test"}}>test</button>
+<button {{action "tesst"}}>tesst</button>
 </center>
+{{#each model as |post|}}
+  {{#blog-post post=post}}
+  {{/blog-post}}
+{{/each}}
