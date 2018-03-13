@@ -44,7 +44,7 @@ export default Controller.extend({
       });
     },
   test() {
-    var peop = [{
+    /*var peop = [{
       title: 'Grand Old Mansion',
       body: 'it is a good mansion',
       rate: [
@@ -58,12 +58,12 @@ export default Controller.extend({
       body: 'Ok ok',
       rate: [5000,3223]
     }];
-    this.set('tableData',peop);
+    this.set('tableData',peop);*/
     //this.transitionToRoute('/index',model);
     //alert('test');
-    /*var tableData = data;
+    var tableData = data;
     //alert(tableData.col[0]);
-    this.set('tableData',tableData);*/
+    this.set('tableData',tableData);
   }
 }
 });

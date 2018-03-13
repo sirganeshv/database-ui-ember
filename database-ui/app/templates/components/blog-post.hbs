@@ -1,16 +1,15 @@
-<article class="blog-post">
-  <h1>{{post.title}}</h1>
+
+  <!--h1>{{!--{{post.title}}</h1>
   <p>{{post.body}}</p>
   <p>{{#each post.rate as |postt|}}
     {{postt}}
     {{/each}}
   </p>
-  <p>Edit title: {{input type="text" value=post.title}}</p>
-</article>
-<!--table>
-  {{!--{{#times post.col.length}}
-    <th>
-      {{post.col}}
-    </th>
-  {{/times}}--}}
-</table-->
+  <p>Edit title: {{input type="text" value=post.title}}--}}</p-->
+  <tr>
+  {{#each post as |row|}}
+    <td>
+    {{row}}
+    </td>
+  {{/each}}
+</tr>

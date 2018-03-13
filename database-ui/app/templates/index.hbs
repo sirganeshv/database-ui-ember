@@ -6,6 +6,8 @@ table, td {
 table {
   border-collapse: collapse;
   padding: 15px;
+  /*table-layout: auto;
+  width: 180px;*/
 }
 </style>
 <div>
@@ -14,21 +16,31 @@ table {
   {{input type="text" id="table_name" name="table_name" value=table_name placeholder="Enter table_name" }}
   <button {{action "display"}}>Go</button>
 </div>
+<button {{action "test"}}>test</button>
+<button {{action "tesst"}}>tesst</button>
 <center><br/><br/>
 <div id="tablediv">
-	<table id="table">
+	<!--table id="table">
 		<thead id="tablehead">
 		</thead>
 		<tbody id = "tablebody">
-			<!-- <tr></tr> -->
 		</tbody>
 	</table>
-  {{message}}
+  {{!--{{message}}--}}
 </div>
-<button {{action "test"}}>test</button>
-<button {{action "tesst"}}>tesst</button>
+</center-->
+<table>
+  <tr>
+    {{#each model.col as |post|}}
+    <th>
+      {{post}}
+    </th>
+    {{/each}}
+  </tr>
+  {{#each model.row as |post|}}
+    {{#blog-post post=post}}
+    {{/blog-post}}
+  {{/each}}
+</table>
+</div>
 </center>
-{{#each model as |post|}}
-  {{#blog-post post=post}}
-  {{/blog-post}}
-{{/each}}
