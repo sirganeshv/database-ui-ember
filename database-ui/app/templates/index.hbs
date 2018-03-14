@@ -1,14 +1,4 @@
 <style>
-/*table, td {
-    border: 1px solid black;
-    font-size: 25px;
-}
-table {
-  border-collapse: collapse;
-  padding: 15px;
-  /*table-layout: auto;
-  width: 180px;
-}*/
 table {
 	height: 400px;
 	width: 400px;
@@ -32,7 +22,7 @@ td {
 <center><br/><br/>
 {{message}}
 <div id="tablediv">
-{{#disp-table data=model}}
+{{#disp-table data=model action="sortBy"}}
 {{/disp-table}}
 </div>
 </center>

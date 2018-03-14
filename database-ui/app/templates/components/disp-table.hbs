@@ -11,6 +11,7 @@ table {
   table-layout: auto;
   width: 180px;
 }
+/*{{!--{{action "sort" col false}}--}}*/
 </style>
 <table id='table'>
   <thead id="tablehead">
@@ -22,15 +23,17 @@ table {
       {{/each}}
     </tr>
   </thead>
-  <tbody id = "tablebody">
-    {{#each data.row as |row|}}
-      <tr>
-        {{#each row as |rowData|}}
-          <td align="center">
-            {{rowData}}
-          </td>
-        {{/each}}
-      </tr>
-    {{/each}}
+  <tbody id= "tablebody">
+    {{#table-pagination paginateBy=5 items=data.row as |rows|}}
+      {{#each rows as |row|}}
+        <tr>
+          {{#each row as |rowData|}}
+            <td>
+              {{rowData}}
+            </td>
+          {{/each}}
+        </tr>
+      {{/each}}
+    {{/table-pagination}}
   </tbody>
 </table>

@@ -2,6 +2,8 @@ import Controller from '@ember/controller';
 var data = ' ';
 export default Controller.extend({
   ajax: Ember.inject.service(),
+  sortProperties: ['acc_no:desc'],
+  sortedModel: Ember.computed.sort("model.row", "sortProperties"),
   actions : {
     display() {
       var that  = this;
@@ -33,6 +35,13 @@ export default Controller.extend({
     setData() {
       var tableData = data;
       this.set('tableData',tableData);
-    }
+      sortedModel: Ember.computed.sort("model.row", "sortProperties");
+    },
+    sortBy: function(property,ascending) {
+        alert(property+"received");
+        sortedModel: Ember.computed.sort("model.row", "sortProperties");
+        this.set('sortProperties',[property]);
+        this.set('sortAscending',ascending);
+      }
   }
 });
