@@ -43,20 +43,20 @@ public class DatabaseServlet extends HttpServlet{
 				obj.put("col",col);
 				System.out.println();
 				int j = 0;
-				JSONArray row = new JSONArray();
+				JSONArray rows = new JSONArray();
 				while(rs.next()) {
-					JSONArray rowi = new JSONArray();
-					JSONObject rowobj = new JSONObject();
+					//JSONArray rowi = new JSONArray();
+					JSONObject rowObject = new JSONObject();
 					for(int i = 0 ;i < rsmd.getColumnCount();i++) {
-						//rowobj.put(rsmd.getColumnName(i+1),rs.getString(i+1));
-						rowi.add(rs.getString(i+1));
+						rowObject.put(rsmd.getColumnName(i+1),rs.getString(i+1));
+						//rowi.add(rs.getString(i+1));
 						System.out.print(rs.getString(i+1)+"\t");
 					}
-					row.add(rowi);
+					rows.add(rowObject);
 					j++;
 					System.out.println();
 				}
-				obj.put("row",row);
+				obj.put("row",rows);
 				pw.println(obj);
 			}
 			else

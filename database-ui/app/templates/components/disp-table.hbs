@@ -11,10 +11,12 @@ table {
   table-layout: auto;
   width: 180px;
 }
-/*{{!--{{action "sort" col false}}--}}*/
 </style>
+{{#if isDisplayed}}
+  {{input value=theFilter type='text' placeholder='Filter'}}
+{{/if}}
 <table id='table'>
-  {{#table-pagination paginateBy=5 items=data.row as |rows|}}
+  {{#table-pagination paginateBy=5 items=filterData as |rows|}}
     <thead id="tablehead">
       <tr>
         {{#each data.col as |col|}}
@@ -27,9 +29,9 @@ table {
     <tbody id= "tablebody">
       {{#each rows as |row|}}
         <tr>
-          {{#each row as |rowData|}}
-            <td align="center">
-              {{rowData}}
+          {{#each data.col as |col|}}
+            <td>
+             {{get row col}}
             </td>
           {{/each}}
         </tr>

@@ -8,8 +8,10 @@ export default Ember.Component.extend({
   paginatedItems: Ember.computed('items', 'page', function(){
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
     var j = i + parseInt(this.get('paginateBy'));
+    //if(this.get('page')>this.get('numberOfPages'))
+      //this.set('page',1);
     if('items' == null)
-      return false
+      return false;
     else
       return this.get('items').slice(i, j);
   }),
