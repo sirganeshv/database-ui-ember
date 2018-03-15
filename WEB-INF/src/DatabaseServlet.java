@@ -46,7 +46,9 @@ public class DatabaseServlet extends HttpServlet{
 				JSONArray row = new JSONArray();
 				while(rs.next()) {
 					JSONArray rowi = new JSONArray();
+					JSONObject rowobj = new JSONObject();
 					for(int i = 0 ;i < rsmd.getColumnCount();i++) {
+						//rowobj.put(rsmd.getColumnName(i+1),rs.getString(i+1));
 						rowi.add(rs.getString(i+1));
 						System.out.print(rs.getString(i+1)+"\t");
 					}

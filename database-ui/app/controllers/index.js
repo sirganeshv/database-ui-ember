@@ -3,7 +3,7 @@ var data = ' ';
 export default Controller.extend({
   ajax: Ember.inject.service(),
   sortProperties: ['acc_no:desc'],
-  sortedModel: Ember.computed.sort("model.row", "sortProperties"),
+  //sortedModel: Ember.computed.sort("model.row", "sortProperties"),
   actions : {
     display() {
       var that  = this;
@@ -15,6 +15,7 @@ export default Controller.extend({
         }
       }).then(function(resp){
           data = JSON.parse(resp);
+          alert(JSON.stringify(data.row));
           var table = document.getElementById("table");
           var rowCount = table.rows.length;
           for (var x=rowCount-1; x>0; x--) {
@@ -35,13 +36,13 @@ export default Controller.extend({
     setData() {
       var tableData = data;
       this.set('tableData',tableData);
-      sortedModel: Ember.computed.sort("model.row", "sortProperties");
-    },
-    sortBy: function(property,ascending) {
+      //sortedModel: Ember.computed.sort("model.row", "sortProperties");
+    }
+    /*sortBy: function(property,ascending) {
         alert(property+"received");
         sortedModel: Ember.computed.sort("model.row", "sortProperties");
         this.set('sortProperties',[property]);
         this.set('sortAscending',ascending);
-      }
+      }*/
   }
 });

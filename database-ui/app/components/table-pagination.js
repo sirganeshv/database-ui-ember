@@ -35,13 +35,6 @@ export default Ember.Component.extend({
     }
     return n;
   }),
-  arr: Ember.computed('numberOfPages',function(){
-    var n = Array(2);
-    for(var i = 0;i < n.length;i++) {
-      n[i] = i + 1;
-    }
-    return n;
-  }),
   // Whether or not to show the "next" button
   showNext: Ember.computed('page', function(){
     return (this.get('page') < this.get('numberOfPages'));

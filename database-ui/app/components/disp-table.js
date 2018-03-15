@@ -1,16 +1,24 @@
 import Component from '@ember/component';
 
 export default Component.extend({
-  sortProperties: ['acc_no:desc'],
-  sortedModel: Ember.computed.sort("model.row", "sortProperties"),
+  sortProperties: ['customer_name'],
+  sortedModel: Ember.computed.sort("data.row", "sortProperties"),
   actions: {
-    sort: function(property,ascending) {
+    sortBy: function(property) {
       alert(property);
+      //alert(this.get('data.row'));
+      alert(this.get('sortedModel'));
+      alert(this.get('sortProperties'));
       this.set('sortProperties',[property]);
+      this.set('sortAscending',true);
+      alert(this.get('sortedModel'));
+      alert(this.get('sortProperties'));
       //this.sendAction('sortBy',property,ascending);
       //this.sendAction('transitionToRoute', "/index", property,ascending );
-      //this.sendAction('sortBy',property,ascending);
-      this.sendAction('action',property,ascending);
+      //this.sendAction('action',property,ascending);
     }
+  },
+  getvalue(rowData) {
+    alert(JSON.stringify(rowData));
   }
 });

@@ -18,7 +18,7 @@ table {
     <thead id="tablehead">
       <tr>
         {{#each data.col as |col|}}
-        <th width = 5%>
+        <th width = 5% {{action "sortBy" col}}>
           {{col}}
         </th>
         {{/each}}
