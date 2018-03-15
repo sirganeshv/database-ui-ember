@@ -14,26 +14,26 @@ table {
 /*{{!--{{action "sort" col false}}--}}*/
 </style>
 <table id='table'>
-  <thead id="tablehead">
-    <tr>
-      {{#each data.col as |col|}}
-      <th width = 5%>
-        {{col}}
-      </th>
-      {{/each}}
-    </tr>
-  </thead>
-  <tbody id= "tablebody">
-    {{#table-pagination paginateBy=5 items=data.row as |rows|}}
+  {{#table-pagination paginateBy=5 items=data.row as |rows|}}
+    <thead id="tablehead">
+      <tr>
+        {{#each data.col as |col|}}
+        <th width = 5%>
+          {{col}}
+        </th>
+        {{/each}}
+      </tr>
+    </thead>
+    <tbody id= "tablebody">
       {{#each rows as |row|}}
         <tr>
           {{#each row as |rowData|}}
-            <td>
+            <td align="center">
               {{rowData}}
             </td>
           {{/each}}
         </tr>
       {{/each}}
-    {{/table-pagination}}
-  </tbody>
+    </tbody>
+  {{/table-pagination}}
 </table>
