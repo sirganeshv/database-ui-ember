@@ -14,9 +14,18 @@ td {
 }
 </style>
 <div>
+	{{#each getTables as |table|}}
+		<p>{{table}}</p>
+	{{/each}}
+	{{getTables}}
+	<datalist id="tables">
+		{{#each getTables as |table|}}
+    	{{option value=table}}
+		{{/each}}
+  </datalist>
   <br/>
   <b>Enter the table_name:</b><br/>
-  {{input type="text" id="table_name" name="table_name" value=table_name placeholder="Enter table_name" }}
+  {{input list="tables" type="text" id="table_name" name="table_name" value=table_name placeholder="Enter table_name" }}
   <button {{action "display"}}>Go</button>
 </div>
 <center><br/><br/>

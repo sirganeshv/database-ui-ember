@@ -37,4 +37,13 @@
 	<url-pattern>/get_table</url-pattern>
 	<url-pattern>/</url-pattern>
   </servlet-mapping>
+  <servlet>
+	<servlet-name>getTables</servlet-name>
+	<servlet-class>GetTablesServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+	<servlet-name>getTables</servlet-name>
+	<url-pattern>/get_tables</url-pattern>
+  </servlet-mapping>
 </web-app>
