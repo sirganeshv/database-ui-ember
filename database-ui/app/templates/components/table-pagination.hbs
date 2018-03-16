@@ -1,7 +1,11 @@
 <style>
-li {
-   visibility: hidden;
-}
+  li {
+     visibility: hidden;
+     opacity: 0
+  }
+  button:focus{
+      background: no-repeat top;
+  }
 </style>
 {{#if isPaginated}}
   {{yield paginatedItems}}
@@ -11,9 +15,9 @@ li {
   {{else}}
     <li>{{previousText}}</li>
   {{/if}}
-    {{#each pageNumbers as |pageNumber|}}
-      <button {{action "pageClicked" pageNumber}}>Page {{pageNumber}}</button>
-    {{/each}}
+  {{#each pageNumbers as |pageNumber|}}
+    <button {{action "pageClicked" pageNumber}}>Page {{pageNumber}}</button>
+  {{/each}}
   {{#if showNext}}
     <button {{action "nextClicked"}}>{{nextText}}</button>
   {{else}}

@@ -15,6 +15,7 @@ table {
 {{#if isDisplayed}}
   {{input value=theFilter type='text' placeholder='Filter'}}
 {{/if}}
+<br/><br/>
 <table id='table'>
   {{#table-pagination paginateBy=5 items=filterData as |rows|}}
     <thead id="tablehead">
