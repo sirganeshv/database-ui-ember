@@ -1,7 +1,7 @@
 import Route from '@ember/routing/route';
 
 export default Route.extend({
-  beforeModel() {
+  /*beforeModel() {
     var that  = this;
     var tableList = '';
     Ember.$.ajax({
@@ -13,11 +13,11 @@ export default Route.extend({
         //alert(resp);
         that.set('tableList',JSON.parse(resp));
         that.set('hel',"hello");
-        alert(that.getTables());
+        //alert(that.getTables());
     }).catch(function(error){
       alert(error);
     });
-  },
+  },*/
   getTables() {
     return this.get('tableList');
   },

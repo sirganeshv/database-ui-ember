@@ -19,13 +19,31 @@ export default Ember.Component.extend({
     return ((this.get('items')!==null) && (this.get('items')!==undefined) && (this.get('items')!==""));
   }),
   numberOfPages: Ember.computed('items','paginateBy',function(){
-    var n = this.get('items.length');
+    alert('hello');
+    /*var n = this.get('items.length');
     var c = parseInt(this.get('paginateBy'));
     var r = Math.floor(n/c);
     if(n % c > 0) {
       r += 1;
     }
-    return parseInt(r);
+    return parseInt(r);*/
+    table_name = this.get('table_name');
+    if(table_name !== null || table_name !== undefined || table_name !== "") {
+      var that  = this;
+      Ember.$.ajax({
+        url: "/no_of_tables",
+        type: "POST",
+        data: {
+          "table_name" : this.get('table_name')
+        }
+      }).then(function(resp){
+          alert(that.get('table_name'));
+          alert("nuber if pages is ");
+          alert(resp);
+      }).catch(function(error){
+        alert(error);
+      });
+    }
   }),
   pageNumbers: Ember.computed('numberOfPages', function(){
     var num = this.get('numberOfPages');

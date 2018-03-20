@@ -12,10 +12,6 @@ table {
   width: 180px;
 }
 </style>
-{{#if isDisplayed}}
-  {{input value=theFilter type='text' placeholder='Filter'}}
-{{/if}}
-<br/><br/>
 <table id='table'>
   {{#table-pagination paginateBy=5 items=filterData as |rows|}}
     <thead id="tablehead">
@@ -28,7 +24,7 @@ table {
       </tr>
     </thead>
     <tbody id= "tablebody">
-      {{#each rows as |row|}}
+      {{#each data.row as |row|}}
         <tr>
           {{#each data.col as |col|}}
             <td>
