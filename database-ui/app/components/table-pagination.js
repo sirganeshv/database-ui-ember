@@ -37,8 +37,6 @@ export default Ember.Component.extend({
           "table_name" : this.get('table_name')
         }
       }).then(function(resp){
-          alert(that.get('table_name'));
-          alert("nuber if pages is ");
           alert(resp);
       }).catch(function(error){
         alert(error);

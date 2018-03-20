@@ -13,9 +13,7 @@ export default Controller.extend({
           "table_name" : this.get('table_name')
         }
       }).then(function(resp){
-          alert(that.get('tableList'));
           data = JSON.parse(resp);
-          //alert(JSON.stringify(data.row));
           var table = document.getElementById("table");
           var rowCount = table.rows.length;
           for (var x=rowCount-1; x>0; x--) {
