@@ -1,67 +1,89 @@
 import Ember from 'ember';
+import DS from 'ember-data';
 
+var n = 0;
+//var pageCount = 0;
 export default Ember.Component.extend({
   tagName: 'section',
   page: 1,
   paginateBy: 10,
-  paginatedItems: Ember.computed('items', 'page','numberOfPages', function(){
+  pageCount: 0,
+  //result: '',
+  paginatedItems: Ember.computed('items', 'page','pageCount', function(){
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
     var j = i + parseInt(this.get('paginateBy'));
     if('items' == null)
       return false;
     else {
-      return this.get('items').slice(i, j);
+      var that  = this;
+      var result = new Ember.RSVP.Promise(function(resolve, reject) {
+        Ember.$.ajax({
+          url: "/get_page",
+          type: "POST",
+          data: {
+            "table_name" : that.get('table_name'),
+            "start" : i,
+            "stop" : j
+          },
+          success: function(resp){
+            resolve(JSON.parse(resp).row);
+          },
+          error: function(reason) {
+            reject(reason);
+          }
+        });
+      });
     }
+    return DS.PromiseObject.create({ promise: result });
   }),
   isPaginated:Ember.computed('items', function(){
-    if(this.get('page') > this.get('numberOfPages'))
+    if(this.get('page') > this.get('numberOfPages')){
       this.set('page',1);
+    }
     return ((this.get('items')!==null) && (this.get('items')!==undefined) && (this.get('items')!==""));
   }),
   numberOfPages: Ember.computed('items','paginateBy',function(){
-    alert('hello');
-    /*var n = this.get('items.length');
-    var c = parseInt(this.get('paginateBy'));
-    var r = Math.floor(n/c);
-    if(n % c > 0) {
-      r += 1;
-    }
-    return parseInt(r);*/
     table_name = this.get('table_name');
     if(table_name !== null || table_name !== undefined || table_name !== "") {
       var that  = this;
       Ember.$.ajax({
-        url: "/no_of_tables",
+        url: "/no_of_records",
         type: "POST",
         data: {
           "table_name" : this.get('table_name')
         }
       }).then(function(resp){
-          alert(resp);
+          n = parseInt(resp);
+          var c = parseInt(that.get('paginateBy'));
+          var r = Math.floor(n/c);
+          if(n % c > 0) {
+            r += 1;
+          }
+          that.set('pageCount',parseInt(r));
       }).catch(function(error){
         alert(error);
       });
     }
   }),
-  pageNumbers: Ember.computed('numberOfPages', function(){
-    var num = this.get('numberOfPages');
+  pageNumbers: Ember.computed('pageCount', function(){
+    var num = this.get('pageCount');
     var n = Array(num);
     for(var i = 0;i < num;i++) {
       n[i] = i + 1;
     }
     return n;
   }),
-  showNext: Ember.computed('page','numberOfPages', function(){
-    return (this.get('page') < this.get('numberOfPages'));
+  showNext: Ember.computed('page','pageCount', function(){
+    return (this.get('page') < this.get('pageCount'));
   }),
-  showPrevious: Ember.computed('page','numberOfPages', function(){
+  showPrevious: Ember.computed('page','pageCount', function(){
     return (this.get('page') > 1);
   }),
   nextText: 'Next page',
   previousText: 'Previous page',
   actions: {
     nextClicked() {
-      if(this.get('page') + 1 <= this.get('numberOfPages')) {
+      if(this.get('page') + 1 <= this.get('pageCount')) {
         this.set('page', this.get('page') + 1);
       }
     },
@@ -72,6 +94,7 @@ export default Ember.Component.extend({
     },
     pageClicked(pageNumber){
       this.set('page', pageNumber);
+      //alert('page is'+this.get('page'));
     }
   }
 });

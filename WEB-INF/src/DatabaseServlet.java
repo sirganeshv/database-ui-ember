@@ -13,7 +13,8 @@ import org.json.*;
 public class DatabaseServlet extends HttpServlet{
 	private static final String GET_TABLES = "/get_tables";
 	private static final String GET_TABLE = "/get_table";
-	private static final String NO_OF_TABLES = "/no_of_tables";
+	private static final String NO_OF_RECORDS = "/no_of_records";
+	private static final String GET_PAGE = "/get_page";
 	
 	public void doGet(HttpServletRequest req,HttpServletResponse res)  
 	throws ServletException,IOException {
@@ -77,7 +78,7 @@ public class DatabaseServlet extends HttpServlet{
 					conn.close();
 				}
 				break;
-				case NO_OF_TABLES: {
+				case NO_OF_RECORDS: {
 					String table_name = req.getParameter("table_name");
 					if(table_name != null) {
 						System.out.println("table_name");
@@ -87,9 +88,34 @@ public class DatabaseServlet extends HttpServlet{
 							System.out.println(rs.getInt(1));
 							pw.println(rs.getInt(1));
 						}
+						else
+							pw.println(0);
 					}
 					else 
 						pw.println(0);
+				}
+				break;
+				case GET_PAGE: {
+					String table_name = req.getParameter("table_name");
+					int start = Integer.parseInt(req.getParameter("start"));
+					System.out.println(start);
+					int stop = Integer.parseInt(req.getParameter("stop"));
+					System.out.println(stop);
+					DatabaseMetaData dbm = conn.getMetaData();
+					Statement stmt = conn.createStatement(); 
+					ResultSet rs = stmt.executeQuery("select * from "+table_name+" limit "+start+","+stop);
+					ResultSetMetaData rsmd = rs.getMetaData();
+					JSONObject obj = new JSONObject();
+					JSONArray rows = new JSONArray();
+					while(rs.next()) {
+						JSONObject rowObject = new JSONObject();
+						for(int i = 0 ;i < rsmd.getColumnCount();i++) {
+							rowObject.put(rsmd.getColumnName(i+1),rs.getString(i+1));
+						}
+						rows.add(rowObject);
+					}
+					obj.put("row",rows);
+					pw.println(obj);
 				}
 				break;
 			}

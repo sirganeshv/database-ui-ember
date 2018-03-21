@@ -9,7 +9,7 @@
   }
 </style>
 {{#if isPaginated}}
-  {{yield paginatedItems}}
+  {{yield paginatedItems.content}}
 <ul>
   {{#if showPrevious}}
     <button {{action "previousClicked"}}>{{previousText}}</button>
