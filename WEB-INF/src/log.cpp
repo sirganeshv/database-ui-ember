@@ -40,15 +40,15 @@ using namespace rapidjson;
 
 int count = 0;
 jsize len = 0;
-Document obj;
-Value rows(kArrayType);
-Document rowObject;
+
+
 
 JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj, jintArray idList)
 {
 	len = env->GetArrayLength(idList);
 	jint *pId = env->GetIntArrayElements(idList, 0);
 	const char* json = "{}";
+	Document obj;
 	obj.Parse(json);
 	obj.SetObject();
 	Document::AllocatorType& allocator = obj.GetAllocator();
@@ -63,11 +63,13 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
     DWORD dwMinimumBytesToRead = 0;
     PBYTE pBuffer = NULL;
     PBYTE pTemp = NULL;
-	//rowObject.SetObject();
-	//cout<<"true"<<endl;
-	//rowObject.AddMember("eventID",105,allocator);
-	//rowObject.AddMember("eventProvider","hello",allocator);
-	//rows.PushBack(rowObject,allocator);
+	Document rowObject;
+	Value rows(kArrayType);
+	rowObject.SetObject();
+	/*cout<<"true"<<endl;
+	rowObject.AddMember("eventID",105,allocator);
+	rowObject.AddMember("eventProvider","hello",allocator);
+	rows.PushBack(rowObject,allocator);*/
     // The source name (provider) must exist as a subkey of Application.
 	if(NULL == hEventLog) {
 		hEventLog = OpenEventLog(NULL, (LPCSTR) PROVIDER_NAME);
@@ -139,10 +141,40 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 		else
 		{
 			// Print the contents of each record in the buffer.
-			DumpRecordsInBuffer(pBuffer, dwBytesRead,pId);
-		}
-		//CloseEventLog(hEventLog);
+			//DumpRecordsInBuffer(pBuffer, dwBytesRead,pId);
+			count++;
+			DWORD status = ERROR_SUCCESS;
+			PBYTE pRecord = pBuffer;
+			PBYTE pEndOfRecords = pBuffer + dwBytesRead;
+			char TimeStamp[MAX_TIMESTAMP_LEN];
+			LPWSTR pMessage = NULL;
+			LPWSTR pFinalMessage = NULL;
+			//int count = 0;
+			bool flag = false;
+			while (pRecord < pEndOfRecords) {
+				string eventStr = "event";
+				char* newEvent = (char*)eventStr.c_str();
+				//cout<<"ther is some"<<endl;
+				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
+				char* eventProvider = (char*)(pRecord + sizeof(EVENTLOGRECORD));
+				for(int i = 0;i < len;i++) {
+					if(pId[i] == eventID) {
+						rowObject.SetObject();
+						cout<<"pid is "<<pId[i]<<" and event id is "<<eventID<<endl;
+						//cout<<"true"<<endl;
+						rowObject.AddMember("eventID",eventID,allocator);
+						rowObject.AddMember("eventProvider",StringRef(eventProvider),allocator);
+						rows.PushBack(rowObject,allocator);
+						break;
+					}
+					//else
+						//cout<<"false";
+				}
+				pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
+			}
+		}	
 	}
+	CloseEventLog(hEventLog);
 	obj.AddMember("row",rows,allocator);
 	StringBuffer buffer;
 	Writer<StringBuffer> writer(buffer);
@@ -178,7 +210,7 @@ HANDLE GetMessageResources()
 // in the buffer.
 DWORD DumpRecordsInBuffer(PBYTE pBuffer, DWORD dwBytesRead,jint *pid)
 {
-	Document::AllocatorType& allocator = obj.GetAllocator();
+	//Document::AllocatorType& allocator = obj.GetAllocator();
 	count++;
     DWORD status = ERROR_SUCCESS;
     PBYTE pRecord = pBuffer;
