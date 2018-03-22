@@ -37,7 +37,20 @@ public class DatabaseServlet extends HttpServlet{
 				case GET_TABLES: 
 				case GET_TABLE: {
 					String table_name = req.getParameter("table_name");
-					DatabaseMetaData dbm = conn.getMetaData();
+					Statement stmt = conn.createStatement();
+					ResultSet rs = stmt.executeQuery("select count(*) from id");
+					rs.next();
+					int count = rs.getInt(1);
+					int[] idList = new int[count];
+					Statement statement = conn.createStatement();
+					ResultSet resultId = statement.executeQuery("select * from id");
+					int j = 0;
+					while(resultId.next()) {
+						idList[j] = resultId.getInt(1);
+					}
+					Database db = new Database();
+					JSONObject obj = db.getTableJson(table_name,idList);
+					/*DatabaseMetaData dbm = conn.getMetaData();
 					ResultSet rss = dbm.getTables(null, null, "%", null);
 					while (rss.next()) {
 					  //System.out.println(rss.getString(3));
@@ -70,11 +83,11 @@ public class DatabaseServlet extends HttpServlet{
 							j++;
 							//System.out.println();
 						}
-						obj.put("row",rows);
+						obj.put("row",rows);*/	
 						pw.println(obj);
-					}
+					/*}
 					else
-						pw.println("false");
+						pw.println("false");*/
 					conn.close();
 				}
 				break;
@@ -97,24 +110,46 @@ public class DatabaseServlet extends HttpServlet{
 				break;
 				case GET_PAGE: {
 					String table_name = req.getParameter("table_name");
+					Statement stmt = conn.createStatement();
+					ResultSet rs = stmt.executeQuery("select count(*) from id");
+					rs.next();
+					int count = rs.getInt(1);
+					int[] idList = new int[count];
+					Statement statement = conn.createStatement();
+					ResultSet resultId = statement.executeQuery("select * from id");
+					int j = 0;
+					while(resultId.next()) {
+						idList[j] = resultId.getInt(1);
+						j++;
+					}
+					Database db = new Database();
+					JSONObject obj = db.getTableJson(table_name,idList);
 					int start = Integer.parseInt(req.getParameter("start"));
 					System.out.println(start);
 					int stop = Integer.parseInt(req.getParameter("stop"));
 					System.out.println(stop);
-					DatabaseMetaData dbm = conn.getMetaData();
-					Statement stmt = conn.createStatement(); 
-					ResultSet rs = stmt.executeQuery("select * from "+table_name+" limit "+start+","+stop);
-					ResultSetMetaData rsmd = rs.getMetaData();
-					JSONObject obj = new JSONObject();
-					JSONArray rows = new JSONArray();
-					while(rs.next()) {
+					//JSONArray cols = (JSONArray) cols.get("col");
+					JSONArray rows = (JSONArray) obj.get("row");
+					JSONArray pagedRows = new JSONArray();
+					for(int i = start;i < stop && i < rows.size();i++)
+						pagedRows.add(rows.get(i));
+					obj.put("row",pagedRows);
+					//for(int i = 
+					//DatabaseMetaData dbm = conn.getMetaData();
+					//Statement stmt = conn.createStatement(); 
+					//ResultSet rs = stmt.executeQuery("select * from "+table_name+" limit "+start+","+stop);
+					//ResultSetMetaData rsmd = rs.getMetaData();
+					//JSONObject obj = new JSONObject();
+					//JSONArray rows = new JSONArray();
+					/*while(rs.next()) {
 						JSONObject rowObject = new JSONObject();
 						for(int i = 0 ;i < rsmd.getColumnCount();i++) {
 							rowObject.put(rsmd.getColumnName(i+1),rs.getString(i+1));
 						}
 						rows.add(rowObject);
 					}
-					obj.put("row",rows);
+					obj.put("row",rows);*/
+					
 					pw.println(obj);
 				}
 				break;
