@@ -19,6 +19,7 @@ export default Ember.Component.extend({
       var result = new Ember.RSVP.Promise(function(resolve, reject) {
         Ember.$.ajax({
           url: "/get_page",
+          //contentType: "application/json; charset=utf-8",
           type: "POST",
           data: {
             "table_name" : that.get('table_name'),
@@ -26,6 +27,7 @@ export default Ember.Component.extend({
             "stop" : j
           },
           success: function(resp){
+            alert(resp);
             resolve(JSON.parse(resp).row);
           },
           error: function(reason) {

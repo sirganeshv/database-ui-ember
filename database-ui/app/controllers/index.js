@@ -7,12 +7,14 @@ export default Controller.extend({
     display() {
       var that  = this;
       Ember.$.ajax({
-        url: "/get_table",
+        url: "/get_table ",
         type: "POST",
+        //contentType: "application/json; charset=utf-8",
         data: {
           "table_name" : this.get('table_name')
         }
       }).then(function(resp){
+          alert(resp);
           data = JSON.parse(resp);
           var table = document.getElementById("table");
           var rowCount = table.rows.length;
