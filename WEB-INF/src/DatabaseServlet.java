@@ -40,25 +40,17 @@ public class DatabaseServlet extends HttpServlet{
 					String table_name = req.getParameter("table_name");
 					if(table_name != null) {
 						Statement stmt = conn.createStatement();
-						getServletContext().log("Enter table");
-						getServletContext().log(table_name);
 						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
-						getServletContext().log("Done table");
 						if(rs.next()) {
-							getServletContext().log("There are ids");
 							int count = rs.getInt(1);
 							int[] idList = new int[count];
-							getServletContext().log("gonna create statemnet");
 							Statement statement = conn.createStatement();
-							getServletContext().log("letus query");
 							ResultSet resultId = statement.executeQuery("select * from id");
 							int j = 0;
 							while(resultId.next()) {
 								idList[j] = resultId.getInt(1);
-								getServletContext().log(String.valueOf(resultId.getInt(1)));
 								j++;
 							}
-							getServletContext().log("pass it to native");
 							Database db = new Database();
 							JSONObject obj = db.getTableJson(idList);
 						//System.out.println(obj.toJSONString());
@@ -96,15 +88,12 @@ public class DatabaseServlet extends HttpServlet{
 								//System.out.println();
 							}
 							obj.put("row",rows);*/	
-							getServletContext().log("Going to return whole obj");
 							pw.println(obj);
 						}
-						getServletContext().log("Done");
 						/*}
 						else
 							pw.println("false");*/
 					}
-					getServletContext().log("closing connection");
 					conn.close();
 				}
 				break;
@@ -112,30 +101,20 @@ public class DatabaseServlet extends HttpServlet{
 					String table_name = req.getParameter("table_name");
 					if(table_name != null) {
 						Statement stmt = conn.createStatement();
-						getServletContext().log("Enter table n");
-						getServletContext().log(table_name+" n ");
 						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
-						getServletContext().log("Done table n");
 						if(rs.next()) {
-							getServletContext().log("There are ids n");
 							int count = rs.getInt(1);
 							int[] idList = new int[count];
-							getServletContext().log("gonna create statemnet n");
 							Statement statement = conn.createStatement();
-							getServletContext().log("letus query n ");
 							ResultSet resultId = statement.executeQuery("select * from id");
 							int j = 0;
 							while(resultId.next()) {
 								idList[j] = resultId.getInt(1);
-								getServletContext().log(String.valueOf(resultId.getInt(1)));
 								j++;
 							}
-							getServletContext().log("pass it to native n");
 							Database db = new Database();
 							JSONObject obj = db.getTableJson(idList);
-							getServletContext().log("Got object n");
 							JSONArray rows = (JSONArray) obj.get("row");
-							getServletContext().log("No of records are "+rows.size());
 							pw.println(rows.size());
 							/*System.out.println("table_name");
 							Statement stmt = conn.createStatement(); 
@@ -170,7 +149,6 @@ public class DatabaseServlet extends HttpServlet{
 						}
 						Database db = new Database();
 						JSONObject obj = db.getTableJson(idList);
-						//getServletContext().log(obj.toJSONString());
 						int start = Integer.parseInt(req.getParameter("start"));
 						System.out.println(start);
 						int stop = Integer.parseInt(req.getParameter("stop"));
@@ -178,14 +156,11 @@ public class DatabaseServlet extends HttpServlet{
 						System.out.println(obj.toJSONString());
 						//JSONArray cols = (JSONArray) cols.get("col");
 						JSONArray rows = (JSONArray) obj.get("row");
-						getServletContext().log("got row");
 						JSONObject pagedObject = new JSONObject();
 						JSONArray pagedRows = new JSONArray();
 						for(int i = start;i < stop && i < rows.size();i++)
 							pagedRows.add(rows.get(i));
-						getServletContext().log("got separate rows");
 						pagedObject.put("row",pagedRows);
-						getServletContext().log("put row");
 						//for(int i = 
 						//DatabaseMetaData dbm = conn.getMetaData();
 						//Statement stmt = conn.createStatement(); 
