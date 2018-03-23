@@ -165,42 +165,24 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			while (pRecord < pEndOfRecords) {
 				string eventStr = "event";
 				char* newEvent = (char*)eventStr.c_str();
-				//cout<<"ther is some"<<endl;
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-				unsigned char* eventProvider = (unsigned char*)(pRecord + sizeof(EVENTLOGRECORD));
-				std::string s = (const char*)eventProvider;
-				//cout<<"Source is "<<s.c_str()<<endl;
-				//cout<<StringRef(s.c_str())<<endl;
-				const char *p = reinterpret_cast<const char*>(eventProvider);
 				//cout<<eventProvider<<endl;
-				//unsigned const char* eventProviderStr = (unsigned char*)("eventProvider");
-				//char* eventstr = (char*)(eventProviderStr);
-				//StringStream source(eventProvider);
-				//cout<<source<<endl;
-				
-				
-				/*std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert; 
-				std::basic_string<char16_t> sourcee = std::basic_string<char16_t>(eventProviderStr,const allocator_type& alloc = allocator_type());
-				std::string dest = convert.to_bytes(sourcee);
-				cout<dest<<endl;*/
-				/*while (source.Peek() != '\0')
-					if (!Transcoder<UTF8<>, UTF16<> >::Transcode(source, target)) {
-						hasError = true;
-						break;
-					}
-				if (!hasError) {
-					const wchar_t* t = target.GetString();
-					// ...*/
 				for(int i = 0;i < len;i++) {
 					if(pId[i] == eventID) {
+						unsigned char* eventProvider = (unsigned char*)(pRecord + sizeof(EVENTLOGRECORD));
+						std::string s = (const char*)eventProvider;
+						const char *p = reinterpret_cast<const char*>(eventProvider);
 						rowObject.SetObject();
 						//cout<<"pid is "<<pId[i]<<" and event id is "<<eventID<<endl;
-						//cout<<"true"<<endl;
 						rowObject.AddMember("eventID",eventID,allocator);
+						cout<<StringRef(s.c_str())<<endl;
 						rowObject.AddMember("eventProvider",StringRef(s.c_str()),allocator);
-						//rowObject.AddMember("eventProvider",rapidjson::Value().SetString(s.c_str(),s.length()),allocator);
-						//print_as_wide(eventProvider);
 						rows.PushBack(rowObject,allocator);
+						StringBuffer buffer;
+						Writer<StringBuffer> writer(buffer);
+						rows.Accept(writer);
+						std::string jsonStr = string(buffer.GetString());
+						cout<<jsonStr<<endl;
 						break;
 					}
 					//else
@@ -215,7 +197,9 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	StringBuffer buffer;
 	Writer<StringBuffer> writer(buffer);
 	obj.Accept(writer);
-	std::cout << buffer.GetString() << std::endl;
+	std::string jsonStr = string(buffer.GetString());
+	//cout<<jsonStr<<endl;
+	//std::cout << buffer.GetString() << std::endl;
 	return env->NewStringUTF(buffer.GetString());
 /*cleanup:
 

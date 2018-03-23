@@ -13,6 +13,7 @@ export default Controller.extend({
           url: "/get_page ",
           type: "POST",
           //contentType: "charset=utf-16",
+          //contentType: 'application/json; charset=utf-16',
           data: {
             "table_name" : this.get('table_name'),
             "start" : 0,
@@ -28,7 +29,7 @@ export default Controller.extend({
   					    table.deleteRow(x);
   				    }
             }
-            if(resp.trim() == 'false') {
+            if(resp.trim() == '') {
               that.set('message','No such table exists');
             }
             else {

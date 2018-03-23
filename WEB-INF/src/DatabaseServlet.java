@@ -15,7 +15,8 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String GET_TABLE = "/get_table";
 	private static final String NO_OF_RECORDS = "/no_of_records";
 	private static final String GET_PAGE = "/get_page";
-	
+	private static JSONObject jsonobj = null;
+
 	public void doGet(HttpServletRequest req,HttpServletResponse res)  
 	throws ServletException,IOException {
 		doProcess(req,res);
@@ -191,13 +192,16 @@ public class DatabaseServlet extends HttpServlet{
 							j++;
 						}
 						Database db = new Database();
-					JSONObject obj = db.getTableJson(idList);
+					
 					int start = Integer.parseInt(req.getParameter("start"));
 					System.out.println(start);
 					int stop = Integer.parseInt(req.getParameter("stop"));
 					System.out.println(stop);
-					JSONArray rows = (JSONArray)obj.get("row");
-					JSONArray cols = (JSONArray)obj.get("col");
+					if(jsonobj == null)
+						jsonobj = db.getTableJson(idList);
+					System.out.println(jsonobj.toJSONString());
+					JSONArray rows = (JSONArray)jsonobj.get("row");
+					JSONArray cols = (JSONArray)jsonobj.get("col");
 					System.out.println("printing rowssss");
 					System.out.println(rows.toJSONString());
 					System.out.println(cols.toJSONString());
