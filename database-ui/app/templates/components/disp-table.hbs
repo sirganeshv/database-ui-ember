@@ -13,10 +13,9 @@ table {
 }
 </style>
 <table id='table'>
-  {{#table-pagination paginateBy=5 table_name = table_name items=data.row as |rows| }}
     <thead id="tablehead">
       <tr>
-        {{#each data.col as |col|}}
+        {{#each colData as |col|}}
         <th width = 5% {{action "sortBy" col}}>
           {{col}}
         </th>
@@ -24,9 +23,9 @@ table {
       </tr>
     </thead>
     <tbody id= "tablebody">
-      {{#each rows as |row|}}
+      {{#each rowData as |row|}}
         <tr>
-          {{#each data.col as |col|}}
+          {{#each colData as |col|}}
             <td>
              {{get row col}}
             </td>
@@ -34,5 +33,4 @@ table {
         </tr>
       {{/each}}
     </tbody>
-  {{/table-pagination}}
 </table>

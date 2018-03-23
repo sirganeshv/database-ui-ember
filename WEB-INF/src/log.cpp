@@ -18,7 +18,20 @@
 #include "rapidjson/pointer.h"
 #include "rapidjson/schema.h"
 #include "Database.h"
+#include <vector>
+#include <clocale>
+#include <locale>
+#include <cwchar>
 
+void print_as_wide(const char* mbstr)
+{
+    std::mbstate_t state = std::mbstate_t();
+    std::size_t len = 1 + std::mbsrtowcs(NULL, &mbstr, 0, &state);
+    std::vector<wchar_t> wstr(len);
+    std::mbsrtowcs(&wstr[0], &mbstr, wstr.size(), &state);
+    std::wcout << "Wide string: " << &wstr[0] << '\n'
+               << "The length, including '\\0': " << wstr.size() << '\n';
+}
 
 #define PROVIDER_NAME L"Security"
 #define RESOURCE_DLL "C:\\Windows\\System32\\evr.dll"
@@ -45,6 +58,8 @@ jsize len = 0;
 
 JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj, jintArray idList)
 {
+	cout<<"enterd";
+	std::setlocale(LC_ALL, "en_US.utf8");
 	len = env->GetArrayLength(idList);
 	jint *pId = env->GetIntArrayElements(idList, 0);
 	const char* json = "{}";
@@ -66,10 +81,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	Document rowObject;
 	Value rows(kArrayType);
 	rowObject.SetObject();
-	/*cout<<"true"<<endl;
-	rowObject.AddMember("eventID",105,allocator);
-	rowObject.AddMember("eventProvider","hello",allocator);
-	rows.PushBack(rowObject,allocator);*/
     // The source name (provider) must exist as a subkey of Application.
 	if(NULL == hEventLog) {
 		hEventLog = OpenEventLog(NULL, (LPCSTR) PROVIDER_NAME);
@@ -144,7 +155,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			//DumpRecordsInBuffer(pBuffer, dwBytesRead,pId);
 			count++;
 			DWORD status = ERROR_SUCCESS;
-			PBYTE pRecord = pBuffer;
+			unsigned char* pRecord = pBuffer;
 			PBYTE pEndOfRecords = pBuffer + dwBytesRead;
 			char TimeStamp[MAX_TIMESTAMP_LEN];
 			LPWSTR pMessage = NULL;
@@ -156,14 +167,39 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 				char* newEvent = (char*)eventStr.c_str();
 				//cout<<"ther is some"<<endl;
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-				char* eventProvider = (char*)(pRecord + sizeof(EVENTLOGRECORD));
+				unsigned char* eventProvider = (unsigned char*)(pRecord + sizeof(EVENTLOGRECORD));
+				std::string s = (const char*)eventProvider;
+				//cout<<"Source is "<<s.c_str()<<endl;
+				//cout<<StringRef(s.c_str())<<endl;
+				const char *p = reinterpret_cast<const char*>(eventProvider);
+				//cout<<eventProvider<<endl;
+				//unsigned const char* eventProviderStr = (unsigned char*)("eventProvider");
+				//char* eventstr = (char*)(eventProviderStr);
+				//StringStream source(eventProvider);
+				//cout<<source<<endl;
+				
+				
+				/*std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert; 
+				std::basic_string<char16_t> sourcee = std::basic_string<char16_t>(eventProviderStr,const allocator_type& alloc = allocator_type());
+				std::string dest = convert.to_bytes(sourcee);
+				cout<dest<<endl;*/
+				/*while (source.Peek() != '\0')
+					if (!Transcoder<UTF8<>, UTF16<> >::Transcode(source, target)) {
+						hasError = true;
+						break;
+					}
+				if (!hasError) {
+					const wchar_t* t = target.GetString();
+					// ...*/
 				for(int i = 0;i < len;i++) {
 					if(pId[i] == eventID) {
 						rowObject.SetObject();
-						cout<<"pid is "<<pId[i]<<" and event id is "<<eventID<<endl;
+						//cout<<"pid is "<<pId[i]<<" and event id is "<<eventID<<endl;
 						//cout<<"true"<<endl;
 						rowObject.AddMember("eventID",eventID,allocator);
-						rowObject.AddMember("eventProvider",StringRef(eventProvider),allocator);
+						rowObject.AddMember("eventProvider",StringRef(s.c_str()),allocator);
+						//rowObject.AddMember("eventProvider",rapidjson::Value().SetString(s.c_str(),s.length()),allocator);
+						//print_as_wide(eventProvider);
 						rows.PushBack(rowObject,allocator);
 						break;
 					}
@@ -222,66 +258,6 @@ DWORD DumpRecordsInBuffer(PBYTE pBuffer, DWORD dwBytesRead,jint *pid)
 	bool flag = false;
     while (pRecord < pEndOfRecords)
     {
-		//count++;
-        {
-			/*fstream file;
-            GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
-			string filename = string(TimeStamp).substr(0,10);
-			cout<<flag<<endl;
-			if(!flag && (newTimeStamp.length() < 9)) {
-				newTimeStamp = filename;
-				flag = true;
-				cout<<"changed"<<endl;
-			}
-			if(newTimeStamp.length() >= 10 && strcmp(newTimeStamp.substr(0,10).c_str(),filename.c_str()))
-				newTimeStamp = filename;
-			cout<<"new time stamp is "<<newTimeStamp<<endl;
-			if(strcmp(newTimeStamp.substr(newTimeStamp.size() - 4).c_str(),".dat") !=0 ){
-				newTimeStamp.append(extension);
-				cout<<"New Timestamp is "<<newTimeStamp<<endl;
-			}
-			string file_with_extension = string("D:\\Logging\\logs\\"+newTimeStamp);
-			file.open(file_with_extension.c_str(), ios::out|ios::app);
-			file.seekg(0,ios_base::end);
-			int size = file.tellg();
-			cout<<"Size is "<<size<<endl;
-			cout<<"File name is "<<newTimeStamp<<endl;
-			cout<<"Time stamp: "<<TimeStamp<<endl;
-			size += sizeof(TimeStamp);
-			cout<<"Source: "<<pRecord + sizeof(EVENTLOGRECORD)<<endl;
-			size += sizeof(pRecord + sizeof(EVENTLOGRECORD));
-            wprintf(L"record number: %lu\n", ((PEVENTLOGRECORD)pRecord)->RecordNumber);
-			size += sizeof(((PEVENTLOGRECORD)pRecord)->RecordNumber);
-            wprintf(L"status code: %d\n", ((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-			size += sizeof(((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-            printf("event type: %s\n", pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]);
-			size += sizeof(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]);
-			size += 110;
-            if(size<=102400) {
-                file<<"Time stamp: "<<TimeStamp<<endl;
-                file<<"Source: "<<pRecord + sizeof(EVENTLOGRECORD)<<endl;
-                file<<"record number: "<<(((PEVENTLOGRECORD)pRecord)->RecordNumber)<<endl;
-                file<<"status code: "<<(((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF)<<endl;
-                file<<"event type: "<<(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)])<<endl;
-                file<<endl;
-            }
-            else {
-                file.close();
-                filename += "-"+string(TimeStamp).substr(11,2)+"-"+string(TimeStamp).substr(14,2)+"-"+string(TimeStamp).substr(17,2);
-				newTimeStamp = filename;
-                if(strcmp(newTimeStamp.substr(newTimeStamp.size() - 4).c_str(),".dat") !=0 ) {
-					newTimeStamp.append(extension);
-				}
-				file_with_extension = string("D:\\Logging\\logs\\"+newTimeStamp);
-                file.open(file_with_extension.c_str(), ios::out|ios::app);
-                file<<"Time stamp: "<<TimeStamp<<endl;
-                file<<"Source: "<<pRecord + sizeof(EVENTLOGRECORD)<<endl;
-                file<<"record number: "<<(((PEVENTLOGRECORD)pRecord)->RecordNumber)<<endl;
-                file<<"status code: "<<(((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF)<<endl;
-                file<<"event type: "<<(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)])<<endl;
-                file<<endl;
-            }
-            file.close();*/
             /*string eventStr = "event";
             char* newEvent = (char*)eventStr.c_str();
             //cout<<"ther is some"<<endl;
@@ -308,7 +284,6 @@ DWORD DumpRecordsInBuffer(PBYTE pBuffer, DWORD dwBytesRead,jint *pid)
 			file<<"EventID "<<(((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF)<<endl;
 			file<<"event type: "<<(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)])<<endl;*/
             //wprintf(L"\n");
-        }
 
         pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
     }

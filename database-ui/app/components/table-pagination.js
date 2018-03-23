@@ -24,10 +24,11 @@ export default Ember.Component.extend({
           data: {
             "table_name" : that.get('table_name'),
             "start" : i,
-            "stop" : j
+            "stop" : j,
+            //"data" : JSON.stringify(this.get('items'))
           },
           success: function(resp){
-            alert(resp);
+            //alert(resp);
             resolve(JSON.parse(resp).row);
           },
           error: function(reason) {
@@ -46,13 +47,14 @@ export default Ember.Component.extend({
   }),
   numberOfPages: Ember.computed('items','paginateBy',function(){
     table_name = this.get('table_name');
-    if(table_name !== null || table_name !== undefined || table_name !== "") {
+    if(table_name !== null && table_name !== undefined && table_name !== "" && this.get('items') !== null) {
       var that  = this;
       Ember.$.ajax({
         url: "/no_of_records",
         type: "POST",
         data: {
-          "table_name" : this.get('table_name')
+          "table_name" : this.get('table_name'),
+          "data" : JSON.stringify(this.get('items'))
         }
       }).then(function(resp){
           n = parseInt(resp);

@@ -5,33 +5,42 @@ export default Controller.extend({
   sortProperties: ['acc_no:desc'],
   actions : {
     display() {
-      var that  = this;
-      Ember.$.ajax({
-        url: "/get_table ",
-        type: "POST",
-        //contentType: "application/json; charset=utf-8",
-        data: {
-          "table_name" : this.get('table_name')
-        }
-      }).then(function(resp){
-          alert(resp);
-          data = JSON.parse(resp);
-          var table = document.getElementById("table");
-          var rowCount = table.rows.length;
-          for (var x=rowCount-1; x>0; x--) {
-					  table.deleteRow(x);
-					}
-          if(resp.trim() == 'false') {
-            that.set('message','No such table exists');
+      var table_name = this.get('table_name');
+      alert('hello');
+      if(table_name !== null  && table_name != undefined && table_name != '') {
+        var that  = this;
+        Ember.$.ajax({
+          url: "/get_page ",
+          type: "POST",
+          //contentType: "charset=utf-16",
+          data: {
+            "table_name" : this.get('table_name'),
+            "start" : 0,
+            "stop" : 5,
           }
-          else {
-            that.set('message','');
-          }
-          that.send('setData');
-          that.send('getData');
-      }).catch(function(error){
-        alert(error);
-      });
+        }).then(function(resp){
+            alert(that.get('table_name'));
+            alert(resp);
+            var table = document.getElementById("table");
+            if(table != null) {
+              var rowCount = table.rows.length;
+              for (var x=rowCount-1; x>0; x--) {
+  					    table.deleteRow(x);
+  				    }
+            }
+            if(resp.trim() == 'false') {
+              that.set('message','No such table exists');
+            }
+            else {
+              data = JSON.parse(resp);
+              that.set('message','');
+            }
+            that.send('setData');
+            that.send('getData');
+        }).catch(function(error){
+          alert(error);
+        });
+      }
     },
     setData() {
       var tableData = data;
