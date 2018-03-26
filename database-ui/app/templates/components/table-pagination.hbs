@@ -11,6 +11,7 @@
 {{#if isPaginated}}
   {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name" }}
   {{input type="text" value=filterValue name="filterValue" id="filterValue" placeholder="Enter filter Value"}}
+  {{input type="hidden" value=val name="val" id="val" placeholder="Enter filter Value"}}
   <datalist id="cols">
 		{{#each cols as |col|}}
     	<option value={{col}}>

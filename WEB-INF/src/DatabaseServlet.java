@@ -19,6 +19,7 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String NO_OF_RECORDS = "/no_of_records";
 	private static final String GET_PAGE = "/get_page";
 	private static JSONObject jsonobj = null;
+	private static List<JSONObject> filteredList = null;
 
 	public void doGet(HttpServletRequest req,HttpServletResponse res)  
 	throws ServletException,IOException {
@@ -172,7 +173,7 @@ public class DatabaseServlet extends HttpServlet{
 					//}
 					/*else 
 						pw.println(0);*/
-					String table_name = req.getParameter("table_name");
+					/*String table_name = req.getParameter("table_name");
 					String sortProperties = req.getParameter("prop");
 					String filterCol = req.getParameter("filterCol");
 					String filterValue = req.getParameter("filterValue");
@@ -212,7 +213,9 @@ public class DatabaseServlet extends HttpServlet{
 					}
 					else {
 						pw.println("");
-					}
+					}*/
+					if(filteredList != null)
+						pw.println(filteredList.size());
 					conn.close();
 				}
 				break;
@@ -262,7 +265,8 @@ public class DatabaseServlet extends HttpServlet{
 						for(int i = 0;i < rows.size();i++) 
 							sortedJsonRows.add((JSONObject)rows.get(i));
 						Collections.sort(sortedJsonRows,new MyJsonComparator(sortProperties));*/
-						List<JSONObject> filteredList = sortedJsonRows;
+						//List<JSONObject> filteredList = sortedJsonRows;
+						filteredList = sortedJsonRows;
 						if(filterCol != null && filterValue != null && is_col)
 							filteredList = displayHelper.filter(sortedJsonRows,filterCol,filterValue);
 						//smallList.forEach(System.out::println);
