@@ -12,7 +12,7 @@ export default Controller.extend({
         Ember.$.ajax({
           url: "/get_page ",
           type: "POST",
-          //contentType: "charset=utf-16",
+          //contentType: "charset=utf-8",
           //contentType: 'application/json; charset=utf-16',
           data: {
             "table_name" : this.get('table_name'),

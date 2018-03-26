@@ -80,6 +80,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
     PBYTE pTemp = NULL;
 	Value rows(kArrayType);
 	Document rowObject;
+	string s;
     // The source name (provider) must exist as a subkey of Application.
 	if(NULL == hEventLog) {
 		hEventLog = OpenEventLog(NULL, (LPCSTR) PROVIDER_NAME);
@@ -170,8 +171,12 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 				for(int i = 0;i < len;i++) {
 					if(pId[i] == eventID) {
 						//unsigned char* eventProvider = (unsigned char*)(pRecord + sizeof(EVENTLOGRECORD));
-						std::string s = (const char*)(pRecord + sizeof(EVENTLOGRECORD));
+						s = string();
+						s = (const char*)(pRecord + sizeof(EVENTLOGRECORD));
 						//const char *p = reinterpret_cast<const char*>(eventProvider);
+						//Value rowObject(kObjectType);
+						//stringstream sstream;
+						//sstream << eventID);
 						rowObject.SetObject();
 						//cout<<"pid is "<<pId[i]<<" and event id is "<<eventID<<endl;
 						rowObject.AddMember("eventID",eventID,allocator);
@@ -182,23 +187,33 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						Writer<StringBuffer> writer(buffer);
 						rows.Accept(writer);
 						std::string jsonStr = string(buffer.GetString());
-						//cout<<jsonStr<<endl;
+						cout<<jsonStr<<endl;
 						break;
 					}
 				}
 				pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
 			}
-		}	
+		}
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
+		rows.Accept(writer);
+		std::string jsonStr = string(buffer.GetString());
+		cout<<"Temp rows are "<<endl<<jsonStr<<endl<<endl;		
 	}
-	CloseEventLog(hEventLog);
+	StringBuffer bufferr;
+	Writer<StringBuffer> writerr(bufferr);
+	rows.Accept(writerr);
+	std::string jsonStrr = string(bufferr.GetString());
+	cout<<"The final rows are "<<endl<<jsonStrr<<endl<<endl;
 	obj.AddMember("row",rows,allocator);
 	StringBuffer buffer;
 	Writer<StringBuffer> writer(buffer);
 	obj.Accept(writer);
-	std::string jsonStr = string(buffer.GetString());
-	cout<<"The final buffer is "<<endl<<buffer.GetString()<<endl;
-	cout<<"The final string to be sent is "<<endl<<jsonStr<<endl;
+	string jsonStr = string(buffer.GetString());
+	cout<<"The final buffer is "<<endl<<buffer.GetString()<<endl<<endl;
+	cout<<"The final string to be sent is "<<endl<<jsonStr<<endl<<endl;
 	std::cout << buffer.GetString() << std::endl;
+	CloseEventLog(hEventLog);
 	return env->NewStringUTF(buffer.GetString());
 /*cleanup:
 

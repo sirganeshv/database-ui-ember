@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.json.simple.parser.JSONParser;
 import org.json.*;
+import java.io.*;
 
 public class DatabaseServlet extends HttpServlet{
 	private static final String GET_TABLES = "/get_tables";
@@ -207,9 +208,13 @@ public class DatabaseServlet extends HttpServlet{
 					System.out.println(cols.toJSONString());
 					JSONObject pagedObject = new JSONObject();
 					System.out.println("construct obj");
-					JSONArray pagedRows = new JSONArray();
-					for(int i = start;i < stop && i < rows.size();i++)
+					JSONArray pagedRows = new JSONArray(); 
+					for(int i = start;i < stop && i < rows.size();i++) {
+						JSONObject object = (JSONObject)rows.get(i);
+						String value = new String(String.valueOf(object.get("eventProvider")).getBytes("UTF-8"));
+						System.out.println(value);
 						pagedRows.add(rows.get(i));
+					}
 					System.out.println(pagedRows.toJSONString());
 					System.out.println("obj constructed");
 					pagedObject.put("col",cols);
