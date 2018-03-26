@@ -9,7 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.json.simple.parser.JSONParser;
 import org.json.*;
-import java.io.*;
+import java.util.*;
 
 public class DatabaseServlet extends HttpServlet{
 	private static final String GET_TABLES = "/get_tables";
@@ -202,15 +202,23 @@ public class DatabaseServlet extends HttpServlet{
 						jsonobj = db.getTableJson(idList);
 					System.out.println(jsonobj.toJSONString());
 					JSONArray rows = (JSONArray)jsonobj.get("row");
+					ArrayList<JSONObject> sortedJsonRows = new ArrayList<JSONObject>();
+					for(int i = 0;i < rows.size();i++) 
+						sortedJsonRows.add((JSONObject)rows.get(i));
+					Collections.sort(sortedJsonRows,new MyJsonComparator());
+					System.out.println();
+					for (JSONObject obj : sortedJsonRows)
+						System.out.println(obj.toJSONString());
+					System.out.println();
 					JSONArray cols = (JSONArray)jsonobj.get("col");
 					System.out.println("printing rowssss");
-					System.out.println(rows.toJSONString());
-					System.out.println(cols.toJSONString());
+					//System.out.println(rows.toJSONString());
+					//System.out.println(cols.toJSONString());
 					JSONObject pagedObject = new JSONObject();
 					System.out.println("construct obj");
 					JSONArray pagedRows = new JSONArray(); 
 					for(int i = start;i < stop && i < rows.size();i++)
-						pagedRows.add(rows.get(i));
+						pagedRows.add(sortedJsonRows.get(i));
 					System.out.println(pagedRows.toJSONString());
 					System.out.println("obj constructed");
 					pagedObject.put("col",cols);
@@ -242,3 +250,19 @@ public class DatabaseServlet extends HttpServlet{
         return DriverManager.getConnection(url, "root", "");
   }
 }  
+
+class MyJsonComparator implements Comparator<JSONObject> {
+	@Override
+	public int compare(JSONObject o1,JSONObject o2) {
+		String v1 = (String)(String.valueOf(o1.get("eventID")));
+		String v3 = (String)(String.valueOf(o2.get("eventID")));
+		System.out.println(v1 + "   "+v3);
+		if(v1.matches("[0-9]+")) {
+			int num1 = Integer.parseInt(v1);
+			int num2 = Integer.parseInt(v3);
+			return num1 < num2 ? -1 : num1 > num2 ? +1 : 0;
+		}
+		else
+			return (v1.toUpperCase()).compareTo(v3.toUpperCase());
+	}
+}
