@@ -70,6 +70,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	Value col(kArrayType);
 	col.PushBack("eventID",allocator);
 	col.PushBack("eventProvider",allocator);
+	col.PushBack("timestamp",allocator);
 	obj.AddMember("col",col,allocator);
     HANDLE hEventLog = NULL;
     DWORD status = ERROR_SUCCESS;
@@ -80,8 +81,13 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
     PBYTE pTemp = NULL;
 	Value rows(kArrayType);
 	Document rowObject;
-	string s[len] = {};
-	string abc[len] = {};
+	string providers[len] = {};
+	string eventType;
+	string timestamp;
+	vector <string> timestamps;
+	char* TimeStamp[MAX_TIMESTAMP_LEN];
+	int timestamp_index = 0;
+	//wstring;
     // The source name (provider) must exist as a subkey of Application.
 	if(NULL == hEventLog) {
 		hEventLog = OpenEventLog(NULL, (LPCSTR) PROVIDER_NAME);
@@ -155,40 +161,33 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			// Print the contents of each record in the buffer.
 			//DumpRecordsInBuffer(pBuffer, dwBytesRead,pId);
 			count++;
-			//cout<<"Newwwwwwwwwwwww counttttttttttttttttttttt"<<count <<endl;
 			DWORD status = ERROR_SUCCESS;
 			unsigned char* pRecord = pBuffer;
 			unsigned char* pEndOfRecords = pBuffer + dwBytesRead;
 			char TimeStamp[MAX_TIMESTAMP_LEN];
 			LPWSTR pMessage = NULL;
 			LPWSTR pFinalMessage = NULL;
-			//int count = 0;
 			bool flag = false;
 			while (pRecord < pEndOfRecords) {
-				//string eventStr = "event";
-				//char* newEvent = (char*).c_str();
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-				//cout<<eventProvider<<endl;
 				for(int i = 0;i < len;i++) {
 					if(pId[i] == eventID) {
-						//unsigned char* eventProvider = (unsigned char*)(pRecord + sizeof(EVENTLOGRECORD));
-						//s[i] = string();
-						s[i] = (const char*)(pRecord + sizeof(EVENTLOGRECORD));
-						//const char *p = reinterpret_cast<const char*>(eventProvider);
-						//Value rowObject(kObjectType);
-						//stringstream sstream;
-						//sstream << eventID);
+						providers[i] = (const char*)(pRecord + sizeof(EVENTLOGRECORD));
+						GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
+						//timestamp[timestamp_index] = string(TimeStamp);
+						timestamps.push_back(string(TimeStamp));
 						rowObject.SetObject();
-						//cout<<"pid is "<<pId[i]<<" and event id is "<<eventID<<endl;
 						rowObject.AddMember("eventID",eventID,allocator);
-						cout<<StringRef(s[i].c_str())<<endl;
-						rowObject.AddMember("eventProvider",StringRef(s[i].c_str()),allocator);
+						cout<<StringRef(providers[i].c_str())<<endl;
+						rowObject.AddMember("eventProvider",StringRef(providers[i].c_str()),allocator);
+						rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
 						rows.PushBack(rowObject,allocator);
 						StringBuffer buffer;
 						Writer<StringBuffer> writer(buffer);
 						rows.Accept(writer);
 						std::string jsonStr = string(buffer.GetString());
 						cout<<jsonStr<<endl;
+						timestamp_index++;
 						break;
 					}
 				}
