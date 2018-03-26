@@ -26,7 +26,9 @@ public class Database {
 			JSONParser parser = new JSONParser();
 			System.out.println("Gonna enter native method");
 			//int[] idList = {326,105};
-			JSONObject json = (JSONObject) parser.parse(db.getTableAsJson(idList));
+			String jsonStr = db.getTableAsJson(idList);
+			System.out.println(jsonStr);
+			JSONObject json = (JSONObject) parser.parse(jsonStr);
 			return json;
 			//System.out.println(json.toJSONString());
 		}

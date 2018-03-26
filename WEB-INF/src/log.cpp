@@ -78,9 +78,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
     DWORD dwMinimumBytesToRead = 0;
     PBYTE pBuffer = NULL;
     PBYTE pTemp = NULL;
-	Document rowObject;
 	Value rows(kArrayType);
-	rowObject.SetObject();
+	Document rowObject;
     // The source name (provider) must exist as a subkey of Application.
 	if(NULL == hEventLog) {
 		hEventLog = OpenEventLog(NULL, (LPCSTR) PROVIDER_NAME);
@@ -164,15 +163,15 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			//int count = 0;
 			bool flag = false;
 			while (pRecord < pEndOfRecords) {
-				string eventStr = "event";
+				//string eventStr = "event";
 				//char* newEvent = (char*).c_str();
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
 				//cout<<eventProvider<<endl;
 				for(int i = 0;i < len;i++) {
 					if(pId[i] == eventID) {
-						unsigned char* eventProvider = (unsigned char*)(pRecord + sizeof(EVENTLOGRECORD));
+						//unsigned char* eventProvider = (unsigned char*)(pRecord + sizeof(EVENTLOGRECORD));
 						std::string s = (const char*)(pRecord + sizeof(EVENTLOGRECORD));
-						const char *p = reinterpret_cast<const char*>(eventProvider);
+						//const char *p = reinterpret_cast<const char*>(eventProvider);
 						rowObject.SetObject();
 						//cout<<"pid is "<<pId[i]<<" and event id is "<<eventID<<endl;
 						rowObject.AddMember("eventID",eventID,allocator);
@@ -199,7 +198,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	std::string jsonStr = string(buffer.GetString());
 	cout<<"The final buffer is "<<endl<<buffer.GetString()<<endl;
 	cout<<"The final string to be sent is "<<endl<<jsonStr<<endl;
-	//std::cout << buffer.GetString() << std::endl;
+	std::cout << buffer.GetString() << std::endl;
 	return env->NewStringUTF(buffer.GetString());
 /*cleanup:
 
