@@ -80,7 +80,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
     PBYTE pTemp = NULL;
 	Value rows(kArrayType);
 	Document rowObject;
-	string s;
+	string s[len] = {};
+	string abc[len] = {};
     // The source name (provider) must exist as a subkey of Application.
 	if(NULL == hEventLog) {
 		hEventLog = OpenEventLog(NULL, (LPCSTR) PROVIDER_NAME);
@@ -171,8 +172,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 				for(int i = 0;i < len;i++) {
 					if(pId[i] == eventID) {
 						//unsigned char* eventProvider = (unsigned char*)(pRecord + sizeof(EVENTLOGRECORD));
-						s = string();
-						s = (const char*)(pRecord + sizeof(EVENTLOGRECORD));
+						//s[i] = string();
+						s[i] = (const char*)(pRecord + sizeof(EVENTLOGRECORD));
 						//const char *p = reinterpret_cast<const char*>(eventProvider);
 						//Value rowObject(kObjectType);
 						//stringstream sstream;
@@ -180,8 +181,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						rowObject.SetObject();
 						//cout<<"pid is "<<pId[i]<<" and event id is "<<eventID<<endl;
 						rowObject.AddMember("eventID",eventID,allocator);
-						cout<<StringRef(s.c_str())<<endl;
-						rowObject.AddMember("eventProvider",StringRef(s.c_str()),allocator);
+						cout<<StringRef(s[i].c_str())<<endl;
+						rowObject.AddMember("eventProvider",StringRef(s[i].c_str()),allocator);
 						rows.PushBack(rowObject,allocator);
 						StringBuffer buffer;
 						Writer<StringBuffer> writer(buffer);
