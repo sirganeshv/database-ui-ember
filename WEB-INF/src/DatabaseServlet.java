@@ -214,29 +214,22 @@ public class DatabaseServlet extends HttpServlet{
 								is_col = true;
 						if(sortProperties == null)
 							sortProperties = new String(String.valueOf(cols.get(0)));
-						//System.out.println(sortProperties);
 						JSONArray rows = (JSONArray)jsonobj.get("row");
-						ArrayList<JSONObject> sortedJsonRows = new ArrayList<JSONObject>();
+						DisplayHelper displayHelper= new DisplayHelper();
+						ArrayList<JSONObject> sortedJsonRows = displayHelper.sort(rows,sortProperties);
+						/*ArrayList<JSONObject> sortedJsonRows = new ArrayList<JSONObject>();
 						for(int i = 0;i < rows.size();i++) 
 							sortedJsonRows.add((JSONObject)rows.get(i));
-						Collections.sort(sortedJsonRows,new MyJsonComparator(sortProperties));
-						List<JSONObject> smallList = sortedJsonRows;
+						Collections.sort(sortedJsonRows,new MyJsonComparator(sortProperties));*/
+						List<JSONObject> filteredList = sortedJsonRows;
 						if(filterCol != null && filterValue != null && is_col)
-							smallList = sortedJsonRows.stream().filter( c -> String.valueOf(c.get(filterCol)).toUpperCase().contains(filterValue.toUpperCase())).collect(Collectors.toList());
-						smallList.forEach(System.out::println);
-						//System.out.println();
-						//for (JSONObject obj : smallList)
-							//System.out.println(obj.toJSONString());
-						//System.out.println();
-						//System.out.println("printing rowssss");
+							filteredList = displayHelper.filter(sortedJsonRows,filterCol,filterValue);
+						//smallList.forEach(System.out::println);
 						JSONObject pagedObject = new JSONObject();
-						//System.out.println("construct obj");
 						JSONArray pagedRows = new JSONArray(); 
-						for(int i = start;i < stop && i < smallList.size();i++)
-							pagedRows.add(smallList.get(i));
-						//System.out.println(pagedRows.toJSONString());
-						//System.out.println("obj constructed");
-						//System.out.println(filterCol + "   " + filterValue);
+						/*for(int i = start;i < stop && i < smallList.size();i++)
+							pagedRows.add(filteredList.get(i));*/
+						pagedRows = displayHelper.paginate(filteredList,start,stop);
 						pagedObject.put("col",cols);
 						pagedObject.put("row",pagedRows);
 						pw.println(pagedObject);
@@ -267,7 +260,7 @@ public class DatabaseServlet extends HttpServlet{
   }
 }  
 
-class MyJsonComparator implements Comparator<JSONObject> {
+/*class MyJsonComparator implements Comparator<JSONObject> {
 	String sortProperties;
 	public MyJsonComparator(String prop) {
 		sortProperties = new String(prop);
@@ -284,4 +277,4 @@ class MyJsonComparator implements Comparator<JSONObject> {
 		else
 			return (v1.toUpperCase()).compareTo(v3.toUpperCase());
 	}
-}
+}*/
