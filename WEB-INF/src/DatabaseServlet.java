@@ -209,12 +209,8 @@ public class DatabaseServlet extends HttpServlet{
 					JSONObject pagedObject = new JSONObject();
 					System.out.println("construct obj");
 					JSONArray pagedRows = new JSONArray(); 
-					for(int i = start;i < stop && i < rows.size();i++) {
-						JSONObject object = (JSONObject)rows.get(i);
-						String value = new String(String.valueOf(object.get("eventProvider")).getBytes("UTF-8"));
-						System.out.println(value);
+					for(int i = start;i < stop && i < rows.size();i++)
 						pagedRows.add(rows.get(i));
-					}
 					System.out.println(pagedRows.toJSONString());
 					System.out.println("obj constructed");
 					pagedObject.put("col",cols);
