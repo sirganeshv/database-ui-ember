@@ -2,22 +2,21 @@ import Component from '@ember/component';
 
 
 export default Component.extend({
-
-  sortProperties: Ember.computed("data.col", function(){
-    if(this.get('data.col') == null) {
+  sortProperties: Ember.computed("colData", function(){
+    if(this.get('colData') == null) {
       return [''];
     }
     else {
-      return [this.get('data.col')[0]];
+      return [this.get('colData')[0]];
     }
   }),
 
   sortAscending: true,
-  sortedModel: Ember.computed.sort("data.row", "sortProperties"),
+  sortedModel: Ember.computed.sort("rowData", "sortProperties"),
   theFilter: "",
 
-  isDisplayed: Ember.computed("data.row", function(){
-    if(this.get('data.row') == null)
+  isDisplayed: Ember.computed("rowData", function(){
+    if(this.get('rowData') == null)
       return false;
     else return true;
   }),
@@ -34,9 +33,9 @@ export default Component.extend({
   },
 
   filterData: (function() {
-      return this.get("sortedModel").filter((function(_this) {
+      return this.get("rowData").filter((function(_this) {
       return function(theObject,index,enumerable) {
-        if (_this.get("theFilter")) {
+        if (_this.get("rowData")) {
           return _this.checkFilterMatch(theObject, _this.get("theFilter"));
         } else {
           return true;
@@ -46,16 +45,27 @@ export default Component.extend({
   }).property("theFilter", "sortProperties","sortedModel"),
 
   actions: {
+    /*sortBy: function(property) {
+      alert("hi");
+      this.sendAction('sortBy',property);
+    }*/
     sortBy: function(property) {
-      if(this.get('sortProperties')[0]==property) {
+      /*alert("hellooo");
+      alert(property + " "+this.get('sortProperties')[0]);
+      if(this.get('sortProperties')[0].includes(property)) {
         this.toggleProperty('sortAscending');
-        let sortOrd = this.get('sortOrde') ? 'asc' : 'desc' ;
+        let sortOrd = this.get('sortOrder') ? 'asc' : 'desc' ;
         this.set('sortProperties',[`${property}:${sortOrd}`]);
+        alert('old');
       }
       else {
         this.set('sortAscending',true);
         this.set('sortProperties',[property]);
+        alert('fresh');
       }
+      alert(JSON.stringify(this.get('sortedModel')));
+    }*/
+      this.sendAction('sortBy',property);
     }
   }
 });

@@ -31,8 +31,8 @@ td {
 <center><br/><br/>
 {{message}}
 <div id="tablediv">
-{{#table-pagination paginateBy=5 table_name = table_name items=model.row as |rows| }}
-	{{#disp-table colData=model.col rowData=rows table_name=table_name}}
+{{#table-pagination paginateBy=5 sortProperties = sortProperties prop = prop table_name = table_name items=model.row as |rows| }}
+	{{#disp-table colData=model.col rowData=rows table_name=table_name sortBy = 'sortBy'}}
 	{{/disp-table}}
 {{/table-pagination}}
 </div>

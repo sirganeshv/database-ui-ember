@@ -9,23 +9,26 @@ export default Ember.Component.extend({
   paginateBy: 10,
   pageCount: 0,
   //result: '',
-  paginatedItems: Ember.computed('items', 'page','pageCount', function(){
+  paginatedItems: Ember.computed('items', 'page','pageCount','sortProperties', function(){
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
     var j = i + parseInt(this.get('paginateBy'));
+    //alert("prop is "+prop);
     if('items' == null)
       return false;
     else {
+      //alert("prop is "+prop);
       var that  = this;
       var result = new Ember.RSVP.Promise(function(resolve, reject) {
         Ember.$.ajax({
           url: "/get_page",
           //contentType: "application/json; charset=utf-8",
+          //Content-Type : "application/json",
           type: "POST",
           data: {
             "table_name" : that.get('table_name'),
+            "prop" : that.get('prop'),
             "start" : i,
             "stop" : j,
-            //"data" : JSON.stringify(this.get('items'))
           },
           success: function(resp){
             //alert(resp);
@@ -39,6 +42,7 @@ export default Ember.Component.extend({
     }
     return DS.PromiseObject.create({ promise: result });
   }),
+
   isPaginated:Ember.computed('items', function(){
     if(this.get('page') > this.get('numberOfPages')){
       this.set('page',1);

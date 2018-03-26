@@ -175,6 +175,8 @@ public class DatabaseServlet extends HttpServlet{
 				break;
 				case GET_PAGE: {
 					String table_name = req.getParameter("table_name");
+					String sortProperties = req.getParameter("prop");
+					System.out.println(table_name + " "+req.getParameter("prop"));
 					/*String jsonString = req.getParameter("data");
 					JSONParser parser = new JSONParser();
 					System.out.println("let us paginate");*/
@@ -194,36 +196,39 @@ public class DatabaseServlet extends HttpServlet{
 						}
 						Database db = new Database();
 					
-					int start = Integer.parseInt(req.getParameter("start"));
-					System.out.println(start);
-					int stop = Integer.parseInt(req.getParameter("stop"));
-					System.out.println(stop);
-					if(jsonobj == null)
-						jsonobj = db.getTableJson(idList);
-					System.out.println(jsonobj.toJSONString());
-					JSONArray rows = (JSONArray)jsonobj.get("row");
-					ArrayList<JSONObject> sortedJsonRows = new ArrayList<JSONObject>();
-					for(int i = 0;i < rows.size();i++) 
-						sortedJsonRows.add((JSONObject)rows.get(i));
-					Collections.sort(sortedJsonRows,new MyJsonComparator());
-					System.out.println();
-					for (JSONObject obj : sortedJsonRows)
-						System.out.println(obj.toJSONString());
-					System.out.println();
-					JSONArray cols = (JSONArray)jsonobj.get("col");
-					System.out.println("printing rowssss");
-					//System.out.println(rows.toJSONString());
-					//System.out.println(cols.toJSONString());
-					JSONObject pagedObject = new JSONObject();
-					System.out.println("construct obj");
-					JSONArray pagedRows = new JSONArray(); 
-					for(int i = start;i < stop && i < rows.size();i++)
-						pagedRows.add(sortedJsonRows.get(i));
-					System.out.println(pagedRows.toJSONString());
-					System.out.println("obj constructed");
-					pagedObject.put("col",cols);
-					pagedObject.put("row",pagedRows);
-					pw.println(pagedObject);
+						int start = Integer.parseInt(req.getParameter("start"));
+						System.out.println(start);
+						int stop = Integer.parseInt(req.getParameter("stop"));
+						System.out.println(stop);
+						if(jsonobj == null)
+							jsonobj = db.getTableJson(idList);
+						System.out.println(jsonobj.toJSONString());
+						JSONArray cols = (JSONArray)jsonobj.get("col");
+						if(sortProperties == null)
+							sortProperties = new String(String.valueOf(cols.get(0)));
+						System.out.println(sortProperties);
+						JSONArray rows = (JSONArray)jsonobj.get("row");
+						ArrayList<JSONObject> sortedJsonRows = new ArrayList<JSONObject>();
+						for(int i = 0;i < rows.size();i++) 
+							sortedJsonRows.add((JSONObject)rows.get(i));
+						Collections.sort(sortedJsonRows,new MyJsonComparator(sortProperties));
+						System.out.println();
+						for (JSONObject obj : sortedJsonRows)
+							System.out.println(obj.toJSONString());
+						System.out.println();
+						System.out.println("printing rowssss");
+						//System.out.println(rows.toJSONString());
+						//System.out.println(cols.toJSONString());
+						JSONObject pagedObject = new JSONObject();
+						System.out.println("construct obj");
+						JSONArray pagedRows = new JSONArray(); 
+						for(int i = start;i < stop && i < rows.size();i++)
+							pagedRows.add(sortedJsonRows.get(i));
+						System.out.println(pagedRows.toJSONString());
+						System.out.println("obj constructed");
+						pagedObject.put("col",cols);
+						pagedObject.put("row",pagedRows);
+						pw.println(pagedObject);
 					}
 					else {
 						pw.println("");
@@ -252,10 +257,14 @@ public class DatabaseServlet extends HttpServlet{
 }  
 
 class MyJsonComparator implements Comparator<JSONObject> {
+	String sortProperties;
+	public MyJsonComparator(String prop) {
+		sortProperties = new String(prop);
+	}
 	@Override
 	public int compare(JSONObject o1,JSONObject o2) {
-		String v1 = (String)(String.valueOf(o1.get("eventID")));
-		String v3 = (String)(String.valueOf(o2.get("eventID")));
+		String v1 = (String)(String.valueOf(o1.get(sortProperties)));
+		String v3 = (String)(String.valueOf(o2.get(sortProperties)));
 		System.out.println(v1 + "   "+v3);
 		if(v1.matches("[0-9]+")) {
 			int num1 = Integer.parseInt(v1);
