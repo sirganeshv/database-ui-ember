@@ -10,6 +10,8 @@ import org.json.simple.parser.ParseException;
 import org.json.simple.parser.JSONParser;
 import org.json.*;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class DatabaseServlet extends HttpServlet{
 	private static final String GET_TABLES = "/get_tables";
@@ -176,7 +178,9 @@ public class DatabaseServlet extends HttpServlet{
 				case GET_PAGE: {
 					String table_name = req.getParameter("table_name");
 					String sortProperties = req.getParameter("prop");
-					System.out.println(table_name + " "+req.getParameter("prop"));
+					String filterCol = req.getParameter("filterCol");
+					String filterValue = req.getParameter("filterValue");
+					//System.out.println(table_name + " "+req.getParameter("prop"));
 					/*String jsonString = req.getParameter("data");
 					JSONParser parser = new JSONParser();
 					System.out.println("let us paginate");*/
@@ -204,28 +208,35 @@ public class DatabaseServlet extends HttpServlet{
 							jsonobj = db.getTableJson(idList);
 						System.out.println(jsonobj.toJSONString());
 						JSONArray cols = (JSONArray)jsonobj.get("col");
+						boolean is_col = false;
+						for(int i = 0;i < cols.size();i++)
+							if(String.valueOf(cols.get(i)).equalsIgnoreCase(filterCol))
+								is_col = true;
 						if(sortProperties == null)
 							sortProperties = new String(String.valueOf(cols.get(0)));
-						System.out.println(sortProperties);
+						//System.out.println(sortProperties);
 						JSONArray rows = (JSONArray)jsonobj.get("row");
 						ArrayList<JSONObject> sortedJsonRows = new ArrayList<JSONObject>();
 						for(int i = 0;i < rows.size();i++) 
 							sortedJsonRows.add((JSONObject)rows.get(i));
 						Collections.sort(sortedJsonRows,new MyJsonComparator(sortProperties));
-						System.out.println();
-						for (JSONObject obj : sortedJsonRows)
-							System.out.println(obj.toJSONString());
-						System.out.println();
-						System.out.println("printing rowssss");
-						//System.out.println(rows.toJSONString());
-						//System.out.println(cols.toJSONString());
+						List<JSONObject> smallList = sortedJsonRows;
+						if(filterCol != null && filterValue != null && is_col)
+							smallList = sortedJsonRows.stream().filter( c -> String.valueOf(c.get(filterCol)).toUpperCase().contains(filterValue.toUpperCase())).collect(Collectors.toList());
+						smallList.forEach(System.out::println);
+						//System.out.println();
+						//for (JSONObject obj : smallList)
+							//System.out.println(obj.toJSONString());
+						//System.out.println();
+						//System.out.println("printing rowssss");
 						JSONObject pagedObject = new JSONObject();
-						System.out.println("construct obj");
+						//System.out.println("construct obj");
 						JSONArray pagedRows = new JSONArray(); 
-						for(int i = start;i < stop && i < rows.size();i++)
-							pagedRows.add(sortedJsonRows.get(i));
-						System.out.println(pagedRows.toJSONString());
-						System.out.println("obj constructed");
+						for(int i = start;i < stop && i < smallList.size();i++)
+							pagedRows.add(smallList.get(i));
+						//System.out.println(pagedRows.toJSONString());
+						//System.out.println("obj constructed");
+						//System.out.println(filterCol + "   " + filterValue);
 						pagedObject.put("col",cols);
 						pagedObject.put("row",pagedRows);
 						pw.println(pagedObject);
@@ -265,7 +276,6 @@ class MyJsonComparator implements Comparator<JSONObject> {
 	public int compare(JSONObject o1,JSONObject o2) {
 		String v1 = (String)(String.valueOf(o1.get(sortProperties)));
 		String v3 = (String)(String.valueOf(o2.get(sortProperties)));
-		System.out.println(v1 + "   "+v3);
 		if(v1.matches("[0-9]+")) {
 			int num1 = Integer.parseInt(v1);
 			int num2 = Integer.parseInt(v3);

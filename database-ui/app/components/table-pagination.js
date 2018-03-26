@@ -9,10 +9,9 @@ export default Ember.Component.extend({
   paginateBy: 10,
   pageCount: 0,
   //result: '',
-  paginatedItems: Ember.computed('items', 'page','pageCount','sortProperties', function(){
+  paginatedItems: Ember.computed('items', 'page','pageCount','sortProperties','filterValue', function(){
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
     var j = i + parseInt(this.get('paginateBy'));
-    //alert("prop is "+prop);
     if('items' == null)
       return false;
     else {
@@ -27,6 +26,8 @@ export default Ember.Component.extend({
           data: {
             "table_name" : that.get('table_name'),
             "prop" : that.get('prop'),
+            "filterCol" : that.get('filterCol'),
+            "filterValue" : that.get('filterValue'),
             "start" : i,
             "stop" : j,
           },
@@ -49,7 +50,7 @@ export default Ember.Component.extend({
     }
     return ((this.get('items')!==null) && (this.get('items')!==undefined) && (this.get('items')!==""));
   }),
-  numberOfPages: Ember.computed('items','paginateBy',function(){
+  numberOfPages: Ember.computed('items','paginatedItems','paginateBy',function(){
     table_name = this.get('table_name');
     if(table_name !== null && table_name !== undefined && table_name !== "" && this.get('items') !== null) {
       var that  = this;

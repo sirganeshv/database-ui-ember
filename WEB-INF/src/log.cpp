@@ -177,7 +177,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						timestamps.push_back(string(TimeStamp));
 						rowObject.SetObject();
 						rowObject.AddMember("eventID",eventID,allocator);
-						cout<<StringRef(providers[i].c_str())<<endl;
+						//cout<<StringRef(providers[i].c_str())<<endl;
 						rowObject.AddMember("eventProvider",StringRef(providers[i].c_str()),allocator);
 						rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
 						rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
