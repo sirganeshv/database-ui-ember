@@ -109,7 +109,7 @@ public class DatabaseServlet extends HttpServlet{
 				}
 				break;
 				case NO_OF_RECORDS: {
-					String table_name = req.getParameter("table_name");
+					/*String table_name = req.getParameter("table_name");
 					getServletContext().log(table_name);
 					if(table_name != null) {
 						Statement stmt = conn.createStatement();
@@ -147,13 +147,13 @@ public class DatabaseServlet extends HttpServlet{
 								j++;
 							}
 							Database db = new Database();
-							JSONObject obj = db.getTableJson(idList);*/
+							JSONObject obj = db.getTableJson(idList);
 							JSONArray rows = (JSONArray) obj.get("row");
 							System.out.println("Row created");
 							System.out.println("The size is "+rows.size());
 							pw.println(rows.size());
 							System.out.println("Sent rows");
-						}
+						/*}
 						else
 							pw.println(0);
 					}
@@ -172,6 +172,47 @@ public class DatabaseServlet extends HttpServlet{
 					//}
 					/*else 
 						pw.println(0);*/
+					String table_name = req.getParameter("table_name");
+					String sortProperties = req.getParameter("prop");
+					String filterCol = req.getParameter("filterCol");
+					String filterValue = req.getParameter("filterValue");
+					if(table_name != null) {
+						Statement stmt = conn.createStatement();
+						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
+						rs.next();
+						int count = rs.getInt(1);
+						int[] idList = new int[count];
+						Statement statement = conn.createStatement();
+						ResultSet resultId = statement.executeQuery("select * from id");
+						int j = 0;
+						while(resultId.next()) {
+							idList[j] = resultId.getInt(1);
+							j++;
+						}
+						Database db = new Database();
+						if(jsonobj == null)
+							jsonobj = db.getTableJson(idList);
+						System.out.println(jsonobj.toJSONString());
+						JSONArray cols = (JSONArray)jsonobj.get("col");
+						boolean is_col = false;
+						for(int i = 0;i < cols.size();i++)
+							if(String.valueOf(cols.get(i)).equalsIgnoreCase(filterCol))
+								is_col = true;
+						if(sortProperties == null)
+							sortProperties = new String(String.valueOf(cols.get(0)));
+						JSONArray rows = (JSONArray)jsonobj.get("row");
+						DisplayHelper displayHelper= new DisplayHelper();
+						ArrayList<JSONObject> sortedJsonRows = displayHelper.sort(rows,sortProperties);
+						List<JSONObject> filteredList = sortedJsonRows;
+						if(filterCol != null && filterValue != null && is_col)
+							filteredList = displayHelper.filter(sortedJsonRows,filterCol,filterValue);
+						System.out.println(filteredList.size());
+						getServletContext().log(String.valueOf(filteredList.size()));
+						pw.println(filteredList.size());
+					}
+					else {
+						pw.println("");
+					}
 					conn.close();
 				}
 				break;
@@ -206,7 +247,7 @@ public class DatabaseServlet extends HttpServlet{
 						System.out.println(stop);
 						if(jsonobj == null)
 							jsonobj = db.getTableJson(idList);
-						System.out.println(jsonobj.toJSONString());
+						//System.out.println(jsonobj.toJSONString());
 						JSONArray cols = (JSONArray)jsonobj.get("col");
 						boolean is_col = false;
 						for(int i = 0;i < cols.size();i++)
