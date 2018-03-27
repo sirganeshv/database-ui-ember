@@ -11,7 +11,8 @@ public class DatabaseHelper {
 		if(connection == null) {
 			Class.forName("com.mysql.jdbc.Driver");
 			String url = "jdbc:mysql://localhost:3306/banking";
-			return DriverManager.getConnection(url, "root", "");
+			connection = DriverManager.getConnection(url, "root", "");
+			return connection;
 		}
 		else
 			return connection;
