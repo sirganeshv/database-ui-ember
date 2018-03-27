@@ -19,44 +19,9 @@ export default Controller.extend({
       return [this.get('model.col')[0]];
     }
   }),
-  sortAscending: true,
-  sortedModel: Ember.computed.sort("model.row", "sortProperties"),
-  theFilter: "",
-
-  isDisplayed: Ember.computed("model.row", function(){
-    if(this.get('model.row') == null)
-      return false;
-    else return true;
-  }),
-
-  checkFilterMatch: function(theObject, str) {
-    var field, match;
-    match = false;
-    for (field in theObject) {
-      if (theObject[field].toString().slice(0, str.length) === str) {
-        match = true;
-      }
-    }
-    return match;
-  },
-
-  filterData: (function() {
-      return this.get("model.row").filter((function(_this) {
-      return function(theObject,index,enumerable) {
-        if (_this.get("model.row")) {
-          return _this.checkFilterMatch(theObject, _this.get("theFilter"));
-        } else {
-          return true;
-        }
-      };
-    })(this));
-  }).property("theFilter", "sortProperties","sortedModel"),
-
-
   actions : {
     display() {
       var table_name = this.get('table_name');
-      //alert('hello');
       if(table_name !== null  && table_name != undefined && table_name != '') {
         var that  = this;
         Ember.$.ajax({
@@ -71,8 +36,6 @@ export default Controller.extend({
             "sortProperties" : that.get('sortProperties')
           }
         }).then(function(resp){
-            //alert(that.get('table_name'));
-            //alert(resp);
             var table = document.getElementById("table");
             if(table != null) {
               var rowCount = table.rows.length;
@@ -99,16 +62,6 @@ export default Controller.extend({
       this.set('tableData',tableData);
     },
     sortBy: function(property) {
-      if(this.get('sortProperties')[0].includes(property)) {
-        this.toggleProperty('sortAscending');
-        let sortOrd = this.get('sortOrder') ? 'asc' : 'desc' ;
-        this.set('sortProperties',[`${property}:${sortOrd}`]);
-      }
-      else {
-        this.set('sortAscending',true);
-        this.set('sortProperties',[property]);
-        //alert('fresh');
-      }
       this.set('prop',property);
       this.set('sortProperties',[property]);
     }

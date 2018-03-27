@@ -19,7 +19,6 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String NO_OF_RECORDS = "/no_of_records";
 	private static final String GET_PAGE = "/get_page";
 	private static JSONObject jsonobj = null;
-	private static List<JSONObject> filteredList = null;
 
 	public void doGet(HttpServletRequest req,HttpServletResponse res)  
 	throws ServletException,IOException {
@@ -61,7 +60,7 @@ public class DatabaseServlet extends HttpServlet{
 						Database db = new Database();
 						if(jsonobj == null)
 							jsonobj = db.getTableJson(idList);
-						System.out.println(jsonobj.toJSONString());
+						//System.out.println(jsonobj.toJSONString());
 						JSONArray cols = (JSONArray)jsonobj.get("col");
 						boolean is_col = false;
 						for(int i = 0;i < cols.size();i++)
@@ -82,10 +81,6 @@ public class DatabaseServlet extends HttpServlet{
 					else {
 						pw.println("");
 					}
-					/*if(filteredList != null) {
-						pw.println(filteredList.size());
-						System.out.println("Size of the filtered list is "+filterList.size());
-					}*/
 					conn.close();
 				}
 				break;
@@ -94,11 +89,6 @@ public class DatabaseServlet extends HttpServlet{
 					String sortProperties = req.getParameter("prop");
 					String filterCol = req.getParameter("filterCol");
 					String filterValue = req.getParameter("filterValue");
-					//System.out.println(table_name + " "+req.getParameter("prop"));
-					/*String jsonString = req.getParameter("data");
-					JSONParser parser = new JSONParser();
-					System.out.println("let us paginate");*/
-					//JSONObject obj = (JSONObject) parser.parse(jsonString);
 					if(table_name != null) {
 						Statement stmt = conn.createStatement();
 						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
@@ -120,7 +110,6 @@ public class DatabaseServlet extends HttpServlet{
 						System.out.println(stop);
 						if(jsonobj == null)
 							jsonobj = db.getTableJson(idList);
-						//System.out.println(jsonobj.toJSONString());
 						JSONArray cols = (JSONArray)jsonobj.get("col");
 						boolean is_col = false;
 						for(int i = 0;i < cols.size();i++)
@@ -131,19 +120,11 @@ public class DatabaseServlet extends HttpServlet{
 						JSONArray rows = (JSONArray)jsonobj.get("row");
 						DisplayHelper displayHelper= new DisplayHelper();
 						ArrayList<JSONObject> sortedJsonRows = displayHelper.sort(rows,sortProperties);
-						/*ArrayList<JSONObject> sortedJsonRows = new ArrayList<JSONObject>();
-						for(int i = 0;i < rows.size();i++) 
-							sortedJsonRows.add((JSONObject)rows.get(i));
-						Collections.sort(sortedJsonRows,new MyJsonComparator(sortProperties));*/
-						//List<JSONObject> filteredList = sortedJsonRows;
-						filteredList = sortedJsonRows;
+						List<JSONObject> filteredList = sortedJsonRows;
 						if(filterCol != null && filterValue != null && is_col)
 							filteredList = displayHelper.filter(sortedJsonRows,filterCol,filterValue);
-						//smallList.forEach(System.out::println);
 						JSONObject pagedObject = new JSONObject();
 						JSONArray pagedRows = new JSONArray(); 
-						/*for(int i = start;i < stop && i < smallList.size();i++)
-							pagedRows.add(filteredList.get(i));*/
 						pagedRows = displayHelper.paginate(filteredList,start,stop);
 						pagedObject.put("col",cols);
 						pagedObject.put("row",pagedRows);

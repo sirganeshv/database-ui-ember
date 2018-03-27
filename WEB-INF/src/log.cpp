@@ -94,7 +94,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 		if (NULL == hEventLog)
 		{
 			wprintf(L"OpenEventLog failed with 0x%x.\n", GetLastError());
-			//goto cleanup;
 			return NULL;
 		}
 		else {
@@ -106,7 +105,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 		if (NULL == g_hResources)
 		{
 			wprintf(L"GetMessageResources failed.\n");
-			//goto cleanup;
 			return NULL;
 		}
 	}
@@ -116,10 +114,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	if (NULL == pBuffer)
 	{
 		wprintf(L"Failed to allocate the initial memory for the record buffer.\n");
-		//goto cleanup;
 		return NULL;
 	}
-	//cout<<"let us start doing work"<<endl;
 	// Read blocks of records until you reach the end of the log or an error occurs.
 	while (ERROR_SUCCESS == status)
 	{
@@ -140,7 +136,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 				if (NULL == pTemp)
 				{
 					wprintf(L"Failed to reallocate the memory for the record buffer (%d bytes).\n", dwMinimumBytesToRead);
-					//goto cleanup;
 					return NULL;
 				}
 
@@ -159,7 +154,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 		else
 		{
 			// Print the contents of each record in the buffer.
-			//DumpRecordsInBuffer(pBuffer, dwBytesRead,pId);
 			count++;
 			DWORD status = ERROR_SUCCESS;
 			unsigned char* pRecord = pBuffer;
@@ -177,7 +171,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						timestamps.push_back(string(TimeStamp));
 						rowObject.SetObject();
 						rowObject.AddMember("eventID",eventID,allocator);
-						//cout<<StringRef(providers[i].c_str())<<endl;
 						rowObject.AddMember("eventProvider",StringRef(providers[i].c_str()),allocator);
 						rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
 						rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
@@ -194,16 +187,9 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	StringBuffer buffer;
 	Writer<StringBuffer> writer(buffer);
 	obj.Accept(writer);
-	cout<<"The final buffer is "<<endl<<buffer.GetString()<<endl<<endl;
+	//cout<<"The final buffer is "<<endl<<buffer.GetString()<<endl<<endl;
 	CloseEventLog(hEventLog);
 	return env->NewStringUTF(buffer.GetString());
-/*cleanup:
-
-    if (hEventLog)
-        CloseEventLog(hEventLog);
-
-    if (pBuffer)
-        free(pBuffer);*/
 }
 
 
@@ -220,57 +206,6 @@ HANDLE GetMessageResources()
 
     return hResources;
 }
-
-
-// Loop through the buffer and print the contents of each record 
-// in the buffer.
-DWORD DumpRecordsInBuffer(PBYTE pBuffer, DWORD dwBytesRead,jint *pid)
-{
-	//Document::AllocatorType& allocator = obj.GetAllocator();
-	count++;
-    DWORD status = ERROR_SUCCESS;
-    PBYTE pRecord = pBuffer;
-    PBYTE pEndOfRecords = pBuffer + dwBytesRead;
-	char TimeStamp[MAX_TIMESTAMP_LEN];
-    LPWSTR pMessage = NULL;
-    LPWSTR pFinalMessage = NULL;
-	//int count = 0;
-	bool flag = false;
-    while (pRecord < pEndOfRecords)
-    {
-            /*string eventStr = "event";
-            char* newEvent = (char*)eventStr.c_str();
-            //cout<<"ther is some"<<endl;
-			int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-			char* eventProvider = (char*)(pRecord + sizeof(EVENTLOGRECORD));
-			for(int i = 0;i < len;i++) {
-				if(pid[i] == eventID) {
-					rowObject.SetObject();
-					cout<<"pid is "<<pid[i]<<" and event id is "<<eventID<<endl;
-					//cout<<"true"<<endl;
-					rowObject.AddMember("eventID",eventID,allocator);
-					rowObject.AddMember("eventProvider",StringRef(eventProvider),allocator);
-					rows.PushBack(rowObject,allocator);
-					//obj.AddMember(StringRef(newEvent),eventID,allocator);
-					//cout<<"object added"<<endl;
-					break;
-				}
-				//else
-					//cout<<"false";
-			}*/
-			/*file<<"Time stamp: "<<TimeStamp<<endl;
-			file<<"Source: "<<pRecord + sizeof(EVENTLOGRECORD)<<endl;
-			file<<"record number: "<<(((PEVENTLOGRECORD)pRecord)->RecordNumber)<<endl;
-			file<<"EventID "<<(((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF)<<endl;
-			file<<"event type: "<<(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)])<<endl;*/
-            //wprintf(L"\n");
-
-        pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
-    }
-	//cout<<"count is "<<count<<"\n";
-    return status;
-}
-
 
 // Get an index value to the pEventTypeNames array based on the event type value.
 DWORD GetEventTypeName(DWORD EventType)
