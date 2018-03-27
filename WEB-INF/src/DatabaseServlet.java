@@ -40,140 +40,8 @@ public class DatabaseServlet extends HttpServlet{
 			String path = req.getServletPath();
 			res.setContentType("text/html");
 			switch (path) {
-				case GET_TABLES: 
-				case GET_TABLE: {
-					String table_name = req.getParameter("table_name");
-					getServletContext().log(table_name);
-					if(table_name != null) {
-						Statement stmt = conn.createStatement();
-						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
-						getServletContext().log("got count");
-						if(rs.next()) {
-							getServletContext().log("inside rs");
-							int count = rs.getInt(1);
-							int[] idList = new int[count];
-							Statement statement = conn.createStatement();
-							ResultSet resultId = statement.executeQuery("select * from id");
-							int j = 0;
-							while(resultId.next()) {
-								idList[j] = resultId.getInt(1);
-								j++;
-							}
-							Database db = new Database();
-							JSONObject obj = db.getTableJson(idList);
-						//System.out.println(obj.toJSONString());
-						/*DatabaseMetaData dbm = conn.getMetaData();
-						ResultSet rss = dbm.getTables(null, null, "%", null);
-						while (rss.next()) {
-						  //System.out.println(rss.getString(3));
-						}
-						ResultSet tables = dbm.getTables(null, null, table_name, null);
-						if (tables.next()) {
-							Statement stmt = conn.createStatement(); 
-							ResultSet rs = stmt.executeQuery("select * from "+table_name);
-							ResultSetMetaData rsmd = rs.getMetaData();              
-							//System.out.println();
-							JSONObject obj = new JSONObject();
-							JSONArray col = new JSONArray();
-							for(int i = 0;i < rsmd.getColumnCount();i++ ) {
-								//System.out.print(rsmd.getColumnName(i+1)+"\t");
-								col.add(i, rsmd.getColumnName(i+1));
-							}
-							obj.put("col",col);
-							//System.out.println();
-							int j = 0;
-							JSONArray rows = new JSONArray();
-							while(rs.next()) {
-								//JSONArray rowi = new JSONArray();
-								JSONObject rowObject = new JSONObject();
-								for(int i = 0 ;i < rsmd.getColumnCount();i++) {
-									rowObject.put(rsmd.getColumnName(i+1),rs.getString(i+1));
-									//rowi.add(rs.getString(i+1));
-									//System.out.print(rs.getString(i+1)+"\t");
-								}
-								rows.add(rowObject);
-								j++;
-								//System.out.println();
-							}
-							obj.put("row",rows);*/	
-							getServletContext().log("sending objj");
-							pw.println(obj);
-							getServletContext().log("Sent");
-						}
-						/*}*/
-						else
-							pw.println("false");
-					}
-					else
-						pw.println("false");
-					conn.close();
-				}
-				break;
 				case NO_OF_RECORDS: {
-					/*String table_name = req.getParameter("table_name");
-					getServletContext().log(table_name);
-					if(table_name != null) {
-						Statement stmt = conn.createStatement();
-						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
-						getServletContext().log("got count");
-						if(rs.next()) {
-							getServletContext().log("inside rs");
-							int count = rs.getInt(1);
-							int[] idList = new int[count];
-							Statement statement = conn.createStatement();
-							ResultSet resultId = statement.executeQuery("select * from id");
-							int j = 0;
-							while(resultId.next()) {
-								idList[j] = resultId.getInt(1);
-								j++;
-							}
-							Database db = new Database();
-							JSONObject obj = db.getTableJson(idList);
-							JSONParser parser = new JSONParser();
-					/*String table_name = req.getParameter("table_name");
-					String jsonString = req.getParameter("data");
-					JSONParser parser = new JSONParser();
-					//JSONObject obj = (JSONObject) parser.parse(jsonString);
-					/*if(table_name != null) {
-						Statement stmt = conn.createStatement();
-						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
-						if(rs.next()) {
-							int count = rs.getInt(1);
-							int[] idList = new int[count];
-							Statement statement = conn.createStatement();
-							ResultSet resultId = statement.executeQuery("select * from id");
-							int j = 0;
-							while(resultId.next()) {
-								idList[j] = resultId.getInt(1);
-								j++;
-							}
-							Database db = new Database();
-							JSONObject obj = db.getTableJson(idList);
-							JSONArray rows = (JSONArray) obj.get("row");
-							System.out.println("Row created");
-							System.out.println("The size is "+rows.size());
-							pw.println(rows.size());
-							System.out.println("Sent rows");
-						/*}
-						else
-							pw.println(0);
-					}
-					else
-						pw.println(0);
-							/*System.out.println("table_name");
-							Statement stmt = conn.createStatement(); 
-							ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
-							if(rs.next()) {
-								System.out.println(rs.getInt(1));
-								pw.println(rs.getInt(1));
-							}
-							else
-								pw.println(0);*/
-						//}
-					//}
-					/*else 
-						pw.println(0);*/
-					/*String table_name = req.getParameter("table_name");
+					String table_name = req.getParameter("table_name");
 					String sortProperties = req.getParameter("prop");
 					String filterCol = req.getParameter("filterCol");
 					String filterValue = req.getParameter("filterValue");
@@ -213,9 +81,11 @@ public class DatabaseServlet extends HttpServlet{
 					}
 					else {
 						pw.println("");
-					}*/
-					if(filteredList != null)
+					}
+					/*if(filteredList != null) {
 						pw.println(filteredList.size());
+						System.out.println("Size of the filtered list is "+filterList.size());
+					}*/
 					conn.close();
 				}
 				break;
