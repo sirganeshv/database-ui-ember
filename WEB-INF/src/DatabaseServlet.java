@@ -19,7 +19,8 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String NO_OF_RECORDS = "/no_of_records";
 	private static final String GET_PAGE = "/get_page";
 	private static JSONObject jsonobj = null;
-
+	private static Connection conn;
+	
 	public void doGet(HttpServletRequest req,HttpServletResponse res)  
 	throws ServletException,IOException {
 		doProcess(req,res);
@@ -30,10 +31,21 @@ public class DatabaseServlet extends HttpServlet{
 		doProcess(req,res);
 	}
 	
+	public static void getConnection() {
+		try {
+			conn = DatabaseHelper.getConnection();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	
     public void doProcess(HttpServletRequest req,HttpServletResponse res)  
 	throws ServletException,IOException {  
 		PrintWriter pw=res.getWriter();
-        try(Connection conn = DatabaseHelper.getConnection();){  
+		DatabaseServlet.getConnection();
+        try {  
+			Connection conn = DatabaseHelper.getConnection();
 			String path = req.getServletPath();
 			res.setContentType("text/html");
 			switch (path) {
