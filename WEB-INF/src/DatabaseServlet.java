@@ -1,4 +1,4 @@
-import java.sql.*; 
+import java.sql.*;
 import javax.servlet.http.*;  
 import javax.servlet.*;  
 import java.io.*;  
@@ -33,9 +33,7 @@ public class DatabaseServlet extends HttpServlet{
     public void doProcess(HttpServletRequest req,HttpServletResponse res)  
 	throws ServletException,IOException {  
 		PrintWriter pw=res.getWriter();
-		Connection conn = null;
-        try{  
-			conn = getConnection();
+        try(Connection conn = DatabaseHelper.getConnection();){  
 			String path = req.getServletPath();
 			res.setContentType("text/html");
 			switch (path) {
@@ -81,7 +79,6 @@ public class DatabaseServlet extends HttpServlet{
 					else {
 						pw.println("");
 					}
-					conn.close();
 				}
 				break;
 				case GET_PAGE: {
@@ -133,7 +130,6 @@ public class DatabaseServlet extends HttpServlet{
 					else {
 						pw.println("");
 					}
-					conn.close();
 				}
 				break;
 			}
@@ -149,28 +145,4 @@ public class DatabaseServlet extends HttpServlet{
 			pw.close();
 		}
     }
-    private static Connection getConnection() throws Exception {
-        Class.forName("com.mysql.jdbc.Driver");
-        String url = "jdbc:mysql://localhost:3306/banking";
-        return DriverManager.getConnection(url, "root", "");
-  }
 }  
-
-/*class MyJsonComparator implements Comparator<JSONObject> {
-	String sortProperties;
-	public MyJsonComparator(String prop) {
-		sortProperties = new String(prop);
-	}
-	@Override
-	public int compare(JSONObject o1,JSONObject o2) {
-		String v1 = (String)(String.valueOf(o1.get(sortProperties)));
-		String v3 = (String)(String.valueOf(o2.get(sortProperties)));
-		if(v1.matches("[0-9]+")) {
-			int num1 = Integer.parseInt(v1);
-			int num2 = Integer.parseInt(v3);
-			return num1 < num2 ? -1 : num1 > num2 ? +1 : 0;
-		}
-		else
-			return (v1.toUpperCase()).compareTo(v3.toUpperCase());
-	}
-}*/
