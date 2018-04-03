@@ -56,12 +56,12 @@ jsize len = 0;
 
 
 
-JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj, jintArray idList)
+JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj)
 {
 	cout<<"enterd";
 	std::setlocale(LC_ALL, "en_US.utf8");
-	len = env->GetArrayLength(idList);
-	jint *pId = env->GetIntArrayElements(idList, 0);
+	//len = env->GetArrayLength(idList);
+	//jint *pId = env->GetIntArrayElements(idList, 0);
 	const char* json = "{}";
 	Document obj;
 	obj.Parse(json);
@@ -82,7 +82,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
     PBYTE pTemp = NULL;
 	Value rows(kArrayType);
 	Document rowObject;
-	string providers[len] = {};
+	//string providers[len] = {};
+	vector <string> providers;
 	vector <string> eventType;
 	vector <string> timestamps;
 	char* TimeStamp[MAX_TIMESTAMP_LEN];
@@ -164,21 +165,22 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			bool flag = false;
 			while (pRecord < pEndOfRecords) {
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-				for(int i = 0;i < len;i++) {
-					if(pId[i] == eventID) {
-						providers[i] = (const char*)(pRecord + sizeof(EVENTLOGRECORD));
+				//for(int i = 0;i < len;i++) {
+					//if(pId[i] == eventID) {
+						//int i = 0;
+						providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
 						GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
 						timestamps.push_back(string(TimeStamp));
 						rowObject.SetObject();
 						rowObject.AddMember("eventID",eventID,allocator);
-						rowObject.AddMember("eventProvider",StringRef(providers[i].c_str()),allocator);
+						rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
 						rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
 						rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
 						rows.PushBack(rowObject,allocator);
 						timestamp_index++;
-						break;
-					}
-				}
+						//break;
+					//}
+				//}
 				pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
 			}
 		}		

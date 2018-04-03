@@ -15,10 +15,24 @@ public class Database {
 		System.load("D:\\Log\\Log.dll");
 	}
 	
-	private native String getTableAsJson(int[] idList);
+	private native String getTableAsJson();
 	
+	public JSONObject getTableJson(int[] idList,String filterStr,String sortCol,int paginateBy,int start) {
+		JSONObject json = new JSONObject();//(JSONObject) parser.parse(jsonStr);		
+		//Database db = new Database();
+		//JSONParser parser = new JSONParser();
+		//String jsonStr = db.getTableAsJson();
+		ElasticClient elasticClient = new ElasticClient();
+		json = elasticClient.search(idList,filterStr,sortCol,paginateBy,start);
+		return json;
+	}
+	
+	public long getNumberOfRecords(int[] idList,String filterStr) {
+		ElasticClient elasticClient = new ElasticClient();
+		return elasticClient.getTotalNumberOfRecords(idList,filterStr);
+	}
 		
-	public JSONObject getTableJson(int[] idList) {
+	/*public JSONObject getTableJson(int[] idList) {
 		try {
 			Database db = new Database();
 			JSONParser parser = new JSONParser();
@@ -31,5 +45,5 @@ public class Database {
 			ex.printStackTrace();
 		}
 		return null;
-	}
+	}*/
 }

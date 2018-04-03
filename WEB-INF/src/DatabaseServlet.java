@@ -1,7 +1,7 @@
 import java.sql.*;
-import javax.servlet.http.*;  
-import javax.servlet.*;  
-import java.io.*;  
+import javax.servlet.http.*;
+import javax.servlet.*;
+import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONArray;
@@ -20,17 +20,17 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String GET_PAGE = "/get_page";
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
-	
-	public void doGet(HttpServletRequest req,HttpServletResponse res)  
+
+	public void doGet(HttpServletRequest req,HttpServletResponse res)
 	throws ServletException,IOException {
 		doProcess(req,res);
 	}
 
-	public void doPost(HttpServletRequest req,HttpServletResponse res)  
-	throws ServletException,IOException  {  
+	public void doPost(HttpServletRequest req,HttpServletResponse res)
+	throws ServletException,IOException  {
 		doProcess(req,res);
 	}
-	
+
 	public static void getConnection() {
 		try {
 			conn = DatabaseHelper.getConnection();
@@ -39,12 +39,12 @@ public class DatabaseServlet extends HttpServlet{
 			ex.printStackTrace();
 		}
 	}
-	
-    public void doProcess(HttpServletRequest req,HttpServletResponse res)  
-	throws ServletException,IOException {  
+
+    public void doProcess(HttpServletRequest req,HttpServletResponse res)
+	throws ServletException,IOException {
 		PrintWriter pw=res.getWriter();
 		DatabaseServlet.getConnection();
-        try {  
+        try {
 			Connection conn = DatabaseHelper.getConnection();
 			String path = req.getServletPath();
 			res.setContentType("text/html");
@@ -67,7 +67,10 @@ public class DatabaseServlet extends HttpServlet{
 							idList[j] = resultId.getInt(1);
 							j++;
 						}
-						Database db = new Database();
+						System.out.println("Gonna see num of records");
+						ElasticClient elasticClient = new ElasticClient();
+						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue));
+						/*Database db = new Database();
 						if(jsonobj == null)
 							jsonobj = db.getTableJson(idList);
 						//System.out.println(jsonobj.toJSONString());
@@ -86,7 +89,7 @@ public class DatabaseServlet extends HttpServlet{
 							filteredList = displayHelper.filter(sortedJsonRows,filterCol,filterValue);
 						System.out.println(filteredList.size());
 						getServletContext().log(String.valueOf(filteredList.size()));
-						pw.println(filteredList.size());
+						pw.println(filteredList.size());*/
 					}
 					else {
 						pw.println("");
@@ -98,6 +101,9 @@ public class DatabaseServlet extends HttpServlet{
 					String sortProperties = req.getParameter("prop");
 					String filterCol = req.getParameter("filterCol");
 					String filterValue = req.getParameter("filterValue");
+					int start = Integer.parseInt(req.getParameter("start"));
+					int stop = Integer.parseInt(req.getParameter("stop"));
+					int paginateBy = stop - start;
 					if(table_name != null) {
 						Statement stmt = conn.createStatement();
 						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
@@ -111,8 +117,12 @@ public class DatabaseServlet extends HttpServlet{
 							idList[j] = resultId.getInt(1);
 							j++;
 						}
-						Database db = new Database();
-					
+						System.out.println("Hello");
+						ElasticClient elasticClient = new ElasticClient();
+						System.out.println("hi");
+						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,paginateBy,start));
+						/*Database db = new Database();
+
 						int start = Integer.parseInt(req.getParameter("start"));
 						System.out.println(start);
 						int stop = Integer.parseInt(req.getParameter("stop"));
@@ -133,11 +143,11 @@ public class DatabaseServlet extends HttpServlet{
 						if(filterCol != null && filterValue != null && is_col)
 							filteredList = displayHelper.filter(sortedJsonRows,filterCol,filterValue);
 						JSONObject pagedObject = new JSONObject();
-						JSONArray pagedRows = new JSONArray(); 
+						JSONArray pagedRows = new JSONArray();
 						pagedRows = displayHelper.paginate(filteredList,start,stop);
 						pagedObject.put("col",cols);
 						pagedObject.put("row",pagedRows);
-						pw.println(pagedObject);
+						pw.println(pagedObject);*/
 					}
 					else {
 						pw.println("");
@@ -148,13 +158,13 @@ public class DatabaseServlet extends HttpServlet{
         }
 		catch(SQLException e) {
 			System.out.println(e);
-			
-        }  
-        catch(Exception e){ 
+
+        }
+        catch(Exception e){
             System.out.println(e);
-        }  
+        }
 		finally {
 			pw.close();
 		}
     }
-}  
+}
