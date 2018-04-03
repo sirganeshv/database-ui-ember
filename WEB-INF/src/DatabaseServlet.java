@@ -71,7 +71,6 @@ public class DatabaseServlet extends HttpServlet{
 							idList[j] = resultId.getInt(1);
 							j++;
 						}
-						System.out.println("Gonna see num of records");
 						ElasticClient elasticClient = new ElasticClient();
 						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue));
 						/*Database db = new Database();
@@ -121,9 +120,7 @@ public class DatabaseServlet extends HttpServlet{
 							idList[j] = resultId.getInt(1);
 							j++;
 						}
-						System.out.println("Hello");
 						ElasticClient elasticClient = new ElasticClient();
-						System.out.println("hi");
 						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,paginateBy,start));
 						/*Database db = new Database();
 
