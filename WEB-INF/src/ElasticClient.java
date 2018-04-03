@@ -27,11 +27,7 @@ import org.json.*;
 
 
 public class ElasticClient {
-	
-	public ElasticClient() {
-		System.out.println("Came");
-	}
-	
+		
 	public TransportClient connect() {
 		TransportClient client = null;
 		Settings settings = Settings.builder()

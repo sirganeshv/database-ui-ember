@@ -17,33 +17,17 @@ public class Database {
 	
 	private native String getTableAsJson();
 	
-	public JSONObject getTableJson(int[] idList,String filterStr,String sortCol,int paginateBy,int start) {
-		JSONObject json = new JSONObject();//(JSONObject) parser.parse(jsonStr);		
-		//Database db = new Database();
-		//JSONParser parser = new JSONParser();
-		//String jsonStr = db.getTableAsJson();
-		ElasticClient elasticClient = new ElasticClient();
-		json = elasticClient.search(idList,filterStr,sortCol,paginateBy,start);
-		return json;
-	}
-	
-	public long getNumberOfRecords(int[] idList,String filterStr) {
-		ElasticClient elasticClient = new ElasticClient();
-		return elasticClient.getTotalNumberOfRecords(idList,filterStr);
-	}
-		
-	/*public JSONObject getTableJson(int[] idList) {
+	public void updateIndex() {
 		try {
 			Database db = new Database();
 			JSONParser parser = new JSONParser();
-			System.out.println("Gonna enter native method");
-			String jsonStr = db.getTableAsJson(idList);
+			String jsonStr = db.getTableAsJson();
 			JSONObject json = (JSONObject) parser.parse(jsonStr);
-			return json;
+			ElasticClient elasticClient = new ElasticClient();
+			elasticClient.insertLog(json);
 		}
 		catch(ParseException ex) {
 			ex.printStackTrace();
 		}
-		return null;
-	}*/
+	}
 }

@@ -21,6 +21,10 @@ public class DatabaseServlet extends HttpServlet{
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
 
+	static {
+		Database db = new Database();
+		db.updateIndex();
+	}
 	public void doGet(HttpServletRequest req,HttpServletResponse res)
 	throws ServletException,IOException {
 		doProcess(req,res);
