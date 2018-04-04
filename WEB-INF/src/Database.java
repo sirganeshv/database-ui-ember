@@ -15,19 +15,25 @@ public class Database {
 		System.load("D:\\Log\\Log.dll");
 	}
 	
-	private native String getTableAsJson();
+	//private native String getTableAsJson(int lastInsertedRecordID);
+	private native String getTableAsJson(int lastInsertedRecordID);
 	
-	public void updateIndex() {
+	public int updateIndex(int lastInsertedRecordID) {
 		try {
 			Database db = new Database();
 			JSONParser parser = new JSONParser();
-			String jsonStr = db.getTableAsJson();
+			System.out.println("last inserted id is ");
+			String jsonStr = db.getTableAsJson(lastInsertedRecordID);
 			JSONObject json = (JSONObject) parser.parse(jsonStr);
 			ElasticClient elasticClient = new ElasticClient();
-			elasticClient.insertLog(json);
+			System.out.println(lastInsertedRecordID);
+			//lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID);
+			lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID);
+			System.out.println(lastInsertedRecordID);
 		}
 		catch(ParseException ex) {
 			ex.printStackTrace();
 		}
+		return lastInsertedRecordID;
 	}
 }

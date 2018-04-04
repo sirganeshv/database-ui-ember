@@ -56,7 +56,7 @@ jsize len = 0;
 
 
 
-JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj)
+JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj, jint lastInsertedRecordID)
 {
 	cout<<"enterd";
 	std::setlocale(LC_ALL, "en_US.utf8");
@@ -72,6 +72,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	col.PushBack("eventProvider",allocator);
 	col.PushBack("eventType", allocator);
 	col.PushBack("timestamp",allocator);
+	col.PushBack("recordID",allocator);
 	obj.AddMember("col",col,allocator);
     HANDLE hEventLog = NULL;
     DWORD status = ERROR_SUCCESS;
@@ -86,6 +87,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	vector <string> providers;
 	vector <string> eventType;
 	vector <string> timestamps;
+	vector <int> recordID;
 	char* TimeStamp[MAX_TIMESTAMP_LEN];
 	int timestamp_index = 0;
 	//wstring;
@@ -117,8 +119,9 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 		wprintf(L"Failed to allocate the initial memory for the record buffer.\n");
 		return NULL;
 	}
+	bool lastRecordReached = false;
 	// Read blocks of records until you reach the end of the log or an error occurs.
-	while (ERROR_SUCCESS == status)
+	while (ERROR_SUCCESS == status && !lastRecordReached)
 	{
 		if (!ReadEventLog(hEventLog, 
 			EVENTLOG_SEQUENTIAL_READ | EVENTLOG_BACKWARDS_READ,
@@ -163,12 +166,27 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			LPWSTR pMessage = NULL;
 			LPWSTR pFinalMessage = NULL;
 			bool flag = false;
+			//cout<<"Record id is "<<((PEVENTLOGRECORD)pRecord)->RecordNumber <<" and lastInsertedRecordID is "<<lastInsertedRecordID<<"\n";
+			/*if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
+				lastRecordReached = true;
+				break;
+			}*/
 			while (pRecord < pEndOfRecords) {
+				if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
+					cout<<"true\n";
+					lastRecordReached = true;
+					break;
+				}
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
 				//for(int i = 0;i < len;i++) {
 					//if(pId[i] == eventID) {
 						//int i = 0;
+						const char *rec;
 						providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
+						int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
+						rec = (const char *) (intptr_t) (((PEVENTLOGRECORD)pRecord)->RecordNumber);
+						//recordID.push_back(string((const char*)(((PEVENTLOGRECORD)pRecord)->RecordNumber)));
+						recordID.push_back(rID);
 						GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
 						timestamps.push_back(string(TimeStamp));
 						rowObject.SetObject();
@@ -176,6 +194,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
 						rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
 						rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
+						rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
 						rows.PushBack(rowObject,allocator);
 						timestamp_index++;
 						//break;

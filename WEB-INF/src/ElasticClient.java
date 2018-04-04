@@ -13,6 +13,8 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.action.search.*; 
 import org.elasticsearch.transport.client.*;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
+import org.elasticsearch.search.sort.FieldSortBuilder;
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 import java.util.*;
 import java.net.InetAddress;
@@ -22,9 +24,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.json.simple.parser.JSONParser;
 import org.json.*;
-
-
-
 
 public class ElasticClient {
 		
@@ -62,7 +61,7 @@ public class ElasticClient {
 		}
 	}
 	
-	public void insertLog(JSONObject json) {
+	public int insertLog(JSONObject json,int lastInsertedRecordID) {
 		TransportClient client = new ElasticClient().connect();
 		IndexResponse response = null;
 		String eventID;
@@ -71,28 +70,34 @@ public class ElasticClient {
 		String timestamp;
 		JSONArray rows = (JSONArray)json.get("row");
 		JSONArray cols = (JSONArray)json.get("col");
-		try {
-			for(int i = 0;i < rows.size();i++) {
-				JSONObject row = (JSONObject)rows.get(i);
-				eventID = String.valueOf(row.get("eventID"));
-				eventProvider = String.valueOf(row.get("eventProvider"));
-				eventType = String.valueOf(row.get("eventType"));
-				timestamp = String.valueOf(row.get("timestamp"));
-				response = client.prepareIndex("logs", "log", String.valueOf(i))
-				.setSource(jsonBuilder()
-							.startObject()
-								.field("eventID", eventID)
-								.field("eventProvider", eventProvider)
-								.field("eventType", eventType)
-								.field("timestamp",timestamp)
-							.endObject()
-						  )
-				.get();
+		if(rows.size() > 0) {
+			JSONObject firstRow = (JSONObject)rows.get(0);
+			lastInsertedRecordID = Integer.parseInt(String.valueOf(firstRow.get("recordID")));
+			System.out.println(lastInsertedRecordID);
+			try {
+				for(int i = 0;i < rows.size();i++) {
+					JSONObject row = (JSONObject)rows.get(i);
+					eventID = String.valueOf(row.get("eventID"));
+					eventProvider = String.valueOf(row.get("eventProvider"));
+					eventType = String.valueOf(row.get("eventType"));
+					timestamp = String.valueOf(row.get("timestamp"));
+					response = client.prepareIndex("logs", "log", String.valueOf(i))
+					.setSource(jsonBuilder()
+								.startObject()
+									.field("eventID", eventID)
+									.field("eventProvider", eventProvider)
+									.field("eventType", eventType)
+									.field("timestamp",timestamp)
+								.endObject()
+							  )
+					.get();
+				}
+			}
+			catch(Exception ex) {
+				ex.printStackTrace();
 			}
 		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
+		return lastInsertedRecordID;
 	}
 	
 	

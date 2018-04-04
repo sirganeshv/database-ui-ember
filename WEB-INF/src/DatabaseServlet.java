@@ -20,10 +20,11 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String GET_PAGE = "/get_page";
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
+	private static int lastInsertedRecordID = 0;
 
 	static {
 		Database db = new Database();
-		db.updateIndex();
+		lastInsertedRecordID = db.updateIndex(lastInsertedRecordID);
 	}
 	public void doGet(HttpServletRequest req,HttpServletResponse res)
 	throws ServletException,IOException {
@@ -72,6 +73,7 @@ public class DatabaseServlet extends HttpServlet{
 							j++;
 						}
 						ElasticClient elasticClient = new ElasticClient();
+						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID);
 						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue));
 						/*Database db = new Database();
 						if(jsonobj == null)
@@ -121,6 +123,7 @@ public class DatabaseServlet extends HttpServlet{
 							j++;
 						}
 						ElasticClient elasticClient = new ElasticClient();
+						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID);
 						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,paginateBy,start));
 						/*Database db = new Database();
 

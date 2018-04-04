@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     Database
  * Method:    getTableAsJson
- * Signature: ()Ljava/lang/String;
+ * Signature: (I)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_Database_getTableAsJson
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 #ifdef __cplusplus
 }
