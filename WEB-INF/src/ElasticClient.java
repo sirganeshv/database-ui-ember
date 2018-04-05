@@ -15,6 +15,10 @@ import org.elasticsearch.transport.client.*;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.action.bulk.BulkProcessor;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 import java.util.*;
 import java.net.InetAddress;
@@ -71,6 +75,23 @@ public class ElasticClient {
 		JSONArray rows = (JSONArray)json.get("row");
 		JSONArray cols = (JSONArray)json.get("col");
 		if(rows.size() > 0) {
+			BulkProcessor bulkProcessor = BulkProcessor.builder(
+				client,  
+				new BulkProcessor.Listener() {
+					@Override
+					public void beforeBulk(long executionId,
+										   BulkRequest request) {  } 
+
+					@Override
+					public void afterBulk(long executionId,
+										  BulkRequest request,
+										  BulkResponse response) { } 
+
+					@Override
+					public void afterBulk(long executionId,
+										  BulkRequest request,
+										  Throwable failure) { } 
+			}).build();
 			JSONObject firstRow = (JSONObject)rows.get(0);
 			lastInsertedRecordID = Integer.parseInt(String.valueOf(firstRow.get("recordID")));
 			System.out.println(lastInsertedRecordID);
@@ -81,7 +102,7 @@ public class ElasticClient {
 					eventProvider = String.valueOf(row.get("eventProvider"));
 					eventType = String.valueOf(row.get("eventType"));
 					timestamp = String.valueOf(row.get("timestamp"));
-					response = client.prepareIndex("logs", "log", String.valueOf(i))
+					/*response = client.prepareIndex("logs", "log", String.valueOf(i))
 					.setSource(jsonBuilder()
 								.startObject()
 									.field("eventID", eventID)
@@ -90,9 +111,20 @@ public class ElasticClient {
 									.field("timestamp",timestamp)
 								.endObject()
 							  )
-					.get();
+					.get();*/
+					bulkProcessor.add(new IndexRequest("logs", "log", String.valueOf(row.get("recordID")))
+						.source(jsonBuilder()
+								.startObject()
+									.field("eventID", eventID)
+									.field("eventProvider", eventProvider)
+									.field("eventType", eventType)
+									.field("timestamp",timestamp)
+								.endObject()));
 				}
+				bulkProcessor.flush();
+				bulkProcessor.close();
 			}
+			
 			catch(Exception ex) {
 				ex.printStackTrace();
 			}
@@ -220,6 +252,7 @@ public class ElasticClient {
 				return createJSONObject(hits);
 			}
 			else {
+				System.out.println("into the search area");
 				SearchResponse response = client.prepareSearch("logs")
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)))

@@ -25,6 +25,7 @@ public class DatabaseServlet extends HttpServlet{
 	static {
 		Database db = new Database();
 		lastInsertedRecordID = db.updateIndex(lastInsertedRecordID);
+		System.out.println("done");
 	}
 	public void doGet(HttpServletRequest req,HttpServletResponse res)
 	throws ServletException,IOException {
@@ -73,8 +74,10 @@ public class DatabaseServlet extends HttpServlet{
 							j++;
 						}
 						ElasticClient elasticClient = new ElasticClient();
+						System.out.println("let us print no of records");
 						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID);
 						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue));
+						System.out.println("printed no of records");
 						/*Database db = new Database();
 						if(jsonobj == null)
 							jsonobj = db.getTableJson(idList);
@@ -109,6 +112,7 @@ public class DatabaseServlet extends HttpServlet{
 					int start = Integer.parseInt(req.getParameter("start"));
 					int stop = Integer.parseInt(req.getParameter("stop"));
 					int paginateBy = stop - start;
+					System.out.println("getting page");
 					if(table_name != null) {
 						Statement stmt = conn.createStatement();
 						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
@@ -125,6 +129,7 @@ public class DatabaseServlet extends HttpServlet{
 						ElasticClient elasticClient = new ElasticClient();
 						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID);
 						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,paginateBy,start));
+						System.out.println("got page");
 						/*Database db = new Database();
 
 						int start = Integer.parseInt(req.getParameter("start"));
