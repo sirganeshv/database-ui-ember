@@ -107,11 +107,13 @@ public class DatabaseServlet extends HttpServlet{
 				case GET_PAGE: {
 					String table_name = req.getParameter("table_name");
 					String sortProperties = req.getParameter("prop");
+					Boolean isAscending = Boolean.parseBoolean(req.getParameter("isAscending"));
 					String filterCol = req.getParameter("filterCol");
 					String filterValue = req.getParameter("filterValue");
 					int start = Integer.parseInt(req.getParameter("start"));
 					int stop = Integer.parseInt(req.getParameter("stop"));
 					int paginateBy = stop - start;
+					System.out.println(isAscending);
 					System.out.println("getting page");
 					if(table_name != null) {
 						Statement stmt = conn.createStatement();
@@ -128,7 +130,7 @@ public class DatabaseServlet extends HttpServlet{
 						}
 						ElasticClient elasticClient = new ElasticClient();
 						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID);
-						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,paginateBy,start));
+						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start));
 						System.out.println("got page");
 						/*Database db = new Database();
 

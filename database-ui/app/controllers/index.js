@@ -62,9 +62,10 @@ export default Controller.extend({
       var tableData = data;
       this.set('tableData',tableData);
     },
-    sortBy: function(property) {
+    sortBy: function(property,sortAscending) {
       this.set('prop',property);
       this.set('sortProperties',[property]);
+      this.set('sortAscending',sortAscending);
     }
   }
 });

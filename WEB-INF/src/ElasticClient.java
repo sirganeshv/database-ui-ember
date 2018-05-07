@@ -196,7 +196,7 @@ public class ElasticClient {
 	}
 
 	
-	public JSONObject search(int[] idList,String filterCol,String filterStr,String sortCol,int paginatedBy,int start) {
+	public JSONObject search(int[] idList,String filterCol,String filterStr,String sortCol,Boolean isAscending,int paginatedBy,int start) {
 		System.out.println("in search method");
 		TransportClient client = new ElasticClient().connect();
 		String ids = String.valueOf(idList[0]);
@@ -217,7 +217,7 @@ public class ElasticClient {
 				//.setQuery(QueryBuilders.matchPhrasePrefixQuery("eventID", filterStr))
 				//.setQuery(QueryBuilders.matchQuery("lastname", "Harding"))		// Query
 				//.setPostFilter(QueryBuilders.rangeQuery("age").from(30).to(40))     // Filter
-				.addSort(sortCol+".keyword",SortOrder.ASC)
+				.addSort(sortCol+".keyword",( isAscending ? SortOrder.ASC : SortOrder.DESC))
 				.setFrom(start)
 				.setSize(paginatedBy)
 				.setExplain(true)
@@ -243,7 +243,7 @@ public class ElasticClient {
 				SearchResponse response = client.prepareSearch("logs")
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)))
-				.addSort(sortCol+".keyword",SortOrder.ASC)
+				.addSort(sortCol+".keyword",( isAscending ? SortOrder.ASC : SortOrder.DESC))
 				.setFrom(start).setSize(paginatedBy).setExplain(true).get();
 				
 				JSONObject resp = (JSONObject) parser.parse(response.toString());

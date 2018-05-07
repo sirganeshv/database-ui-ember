@@ -26,6 +26,7 @@ export default Ember.Component.extend({
           data: {
             "table_name" : that.get('table_name'),
             "prop" : that.get('prop'),
+            'isAscending' : that.get('sortAscending'),
             "filterCol" : that.get('filterCol'),
             "filterValue" : that.get('filterValue'),
             "start" : i,
