@@ -1,4 +1,5 @@
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.client.*;
 import org.elasticsearch.client.transport.*;
 import org.elasticsearch.common.settings.Settings;
@@ -22,6 +23,13 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 import java.util.*;
 import java.net.InetAddress;
+import java.io.*;
+import org.elasticsearch.node.Node;	
+import org.elasticsearch.transport.netty4.*;
+import org.elasticsearch.transport.*;
+import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.node.NodeValidationException;
+import org.elasticsearch.node.InternalSettingsPreparer;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -31,25 +39,78 @@ import org.json.*;
 
 public class ElasticClient {
 		
-	public TransportClient connect() {
-		TransportClient client = null;
+	/*public Client connect() {
+		try {
+		/*Settings.Builder elasticsearchSettings =
+                Settings.builder()
+                        .put("http.enabled", "true") 
+                        //.put("index.number_of_shards", "1")
+                        .put("path.data", new File("E:", "data").getAbsolutePath()) 
+                        .put("path.logs", new File("E:", "logs").getAbsolutePath()) 
+                        //.put("path.work", new File("E:", "work").getAbsolutePath()) 
+                        .put("path.home", "E:");
+		Settings settings = elasticsearchSettings.build();*/
+		/*Settings settings = Settings.builder()
+			.put("cluster.name", "elasticsearch")
+			.put("path.home", "E:")
+			.build();*/
+		/*Settings settings = 
+				Settings.builder()
+                    .put("transport.type", "netty4")
+                    .put("http.type", "netty4")
+                    .put("http.enabled", "true")
+                    .put("path.home", "elasticsearch-data")
+                    .build();*/
+		
+		// on startup
+		
+	/*	return new ElasticClient().elasticSearchTestNode().client();
+		/*Node node = new Node(settings);
+		node.start();
+		return node.client();*/
+		}
+	/*	catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+		/*NodeClient client = null;
 		Settings settings = Settings.builder()
 			.put("cluster.name", "elasticsearch").build();       
 		
 		try {
-			client = new PreBuiltTransportClient(settings)
-				.addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), 9300));        
+			client = new Node(settings);
 		} catch (Exception uhe) {
 			System.out.println("error");
 		}
 		
-		return client;
+		return client;*/
 	}
 	
+	/*public Node elasticSearchTestNode() throws NodeValidationException {
+		Node node = new MyNode(
+				Settings.builder()
+						.put("transport.type", "netty4")
+						.put("http.type", "netty4")
+						.put("http.enabled", "true")
+						.put("cluster.name", "elasticsearch")
+						.put("path.home", "elasticsearch-data")
+						//.put("path.home", "C:\\Users\\ganesh-pt1936\\Downloads\\elasticsearch-6.2.3")
+						.build(),
+				Arrays.asList(Netty4Plugin.class));
+		node.start();
+		return node;
+	}
+
+	private static class MyNode extends Node {
+		public MyNode(Settings preparedSettings, Collection<Class<? extends Plugin>> classpathPlugins) {
+			super(InternalSettingsPreparer.prepareEnvironment(preparedSettings, null), classpathPlugins);
+		}
+	}*/
+		
 	
 	public void insert(int id,String name,String message) {
 		try {
-			TransportClient client = new ElasticClient().connect();
+			NodeClient client = (NodeClient)new ElasticClient().connect();
 			IndexResponse response = client.prepareIndex("twitter", "tweet", String.valueOf(id))
 			.setSource(jsonBuilder()
 						.startObject()
@@ -65,8 +126,8 @@ public class ElasticClient {
 		}
 	}
 	
-	public int insertLog(JSONObject json,int lastInsertedRecordID) {
-		TransportClient client = new ElasticClient().connect();
+	public int insertLog(JSONObject json,int lastInsertedRecordID,Client client) {
+		NodeClient client = (NodeClient)new ElasticClient().connect();
 		IndexResponse response = null;
 		String eventID;
 		String eventProvider;
@@ -133,8 +194,8 @@ public class ElasticClient {
 	}
 	
 	
-	public void get(int id) {
-		TransportClient client = new ElasticClient().connect();
+	/*public void get(int id) {
+		TransportClient client = (NodeClient)new ElasticClient().connect();
 		GetResponse response = client.prepareGet("logs", "log", String.valueOf(id)).get();
 		System.out.println(response);
 		//return response;
@@ -145,10 +206,10 @@ public class ElasticClient {
 		TransportClient client = new ElasticClient().connect();
 		DeleteResponse response = client.prepareDelete("twitter", "tweet", String.valueOf(id)).get();
 		System.out.println(response);
-	}
+	}*/
 	
 	public long getTotalNumberOfRecords(int[] idList,String filterCol,String filterStr) {
-		TransportClient client = new ElasticClient().connect();
+		NodeClient client = (NodeClient)new ElasticClient().connect();
 		String ids = String.valueOf(idList[0]);
 		for(int i = 1;i < idList.length;i++)
 			ids = ids + " " + idList[i];
@@ -198,7 +259,7 @@ public class ElasticClient {
 	
 	public JSONObject search(int[] idList,String filterCol,String filterStr,String sortCol,Boolean isAscending,int paginatedBy,int start) {
 		System.out.println("in search method");
-		TransportClient client = new ElasticClient().connect();
+		NodeClient client = (NodeClient)new ElasticClient().connect();
 		String ids = String.valueOf(idList[0]);
 		for(int i = 1;i < idList.length;i++)
 			ids = ids + " " + idList[i];

@@ -8,6 +8,7 @@ import org.json.simple.parser.ParseException;
 import org.json.simple.parser.JSONParser;
 import org.json.*;
 import java.util.ArrayList;
+import org.elasticsearch.client.*;
 
 public class Database {
 	
@@ -18,7 +19,7 @@ public class Database {
 	//private native String getTableAsJson(int lastInsertedRecordID);
 	private native String getTableAsJson(int lastInsertedRecordID);
 	
-	public int updateIndex(int lastInsertedRecordID) {
+	public int updateIndex(int lastInsertedRecordID,Client client) {
 		try {
 			Database db = new Database();
 			JSONParser parser = new JSONParser();
