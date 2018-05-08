@@ -19,6 +19,9 @@ import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.client.*;
+import org.elasticsearch.transport.netty4.*;
+import org.elasticsearch.transport.*;
+
 
 
 public class DatabaseServlet extends HttpServlet{
@@ -32,7 +35,7 @@ public class DatabaseServlet extends HttpServlet{
 	static Client client;
 	public static Client connect() {
 		try {
-			return new ElasticClient().elasticSearchTestNode().client();
+			return new DatabaseServlet().elasticSearchTestNode().client();
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -62,9 +65,9 @@ public class DatabaseServlet extends HttpServlet{
 	}
 	
 	static {
-		client = DatbaseClient.client(); 
+		client = DatabaseServlet.connect(); 
 		Database db = new Database();
-		lastInsertedRecordID = db.updateIndex(lastInsertedRecordID);
+		lastInsertedRecordID = db.updateIndex(lastInsertedRecordID,client);
 		System.out.println("done");
 	}
 	public void doGet(HttpServletRequest req,HttpServletResponse res)
@@ -116,7 +119,7 @@ public class DatabaseServlet extends HttpServlet{
 						ElasticClient elasticClient = new ElasticClient();
 						System.out.println("let us print no of records");
 						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,client);
-						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue));
+						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue,client));
 						System.out.println("printed no of records");
 						/*Database db = new Database();
 						if(jsonobj == null)
@@ -170,7 +173,7 @@ public class DatabaseServlet extends HttpServlet{
 						}
 						ElasticClient elasticClient = new ElasticClient();
 						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,client);
-						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start));
+						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,client));
 						System.out.println("got page");
 						/*Database db = new Database();
 

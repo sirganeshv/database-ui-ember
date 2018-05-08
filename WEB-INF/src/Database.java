@@ -29,7 +29,7 @@ public class Database {
 			ElasticClient elasticClient = new ElasticClient();
 			System.out.println(lastInsertedRecordID);
 			//lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID);
-			lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID);
+			lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID,client);
 			System.out.println(lastInsertedRecordID);
 		}
 		catch(ParseException ex) {

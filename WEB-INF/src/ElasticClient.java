@@ -68,7 +68,7 @@ public class ElasticClient {
 		/*Node node = new Node(settings);
 		node.start();
 		return node.client();*/
-		}
+		//}
 	/*	catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -84,7 +84,7 @@ public class ElasticClient {
 		}
 		
 		return client;*/
-	}
+	//}
 	
 	/*public Node elasticSearchTestNode() throws NodeValidationException {
 		Node node = new MyNode(
@@ -108,7 +108,7 @@ public class ElasticClient {
 	}*/
 		
 	
-	public void insert(int id,String name,String message) {
+	/*public void insert(int id,String name,String message) {
 		try {
 			NodeClient client = (NodeClient)new ElasticClient().connect();
 			IndexResponse response = client.prepareIndex("twitter", "tweet", String.valueOf(id))
@@ -124,10 +124,10 @@ public class ElasticClient {
 		catch(Exception ex) {
 			ex.printStackTrace();
 		}
-	}
+	}*/
 	
 	public int insertLog(JSONObject json,int lastInsertedRecordID,Client client) {
-		NodeClient client = (NodeClient)new ElasticClient().connect();
+		//NodeClient client = (NodeClient)new ElasticClient().connect();
 		IndexResponse response = null;
 		String eventID;
 		String eventProvider;
@@ -208,8 +208,8 @@ public class ElasticClient {
 		System.out.println(response);
 	}*/
 	
-	public long getTotalNumberOfRecords(int[] idList,String filterCol,String filterStr) {
-		NodeClient client = (NodeClient)new ElasticClient().connect();
+	public long getTotalNumberOfRecords(int[] idList,String filterCol,String filterStr,Client client) {
+		//NodeClient client = (NodeClient)new ElasticClient().connect();
 		String ids = String.valueOf(idList[0]);
 		for(int i = 1;i < idList.length;i++)
 			ids = ids + " " + idList[i];
@@ -257,9 +257,9 @@ public class ElasticClient {
 	}
 
 	
-	public JSONObject search(int[] idList,String filterCol,String filterStr,String sortCol,Boolean isAscending,int paginatedBy,int start) {
+	public JSONObject search(int[] idList,String filterCol,String filterStr,String sortCol,Boolean isAscending,int paginatedBy,int start,Client client) {
 		System.out.println("in search method");
-		NodeClient client = (NodeClient)new ElasticClient().connect();
+		//NodeClient client = (NodeClient)new ElasticClient().connect();
 		String ids = String.valueOf(idList[0]);
 		for(int i = 1;i < idList.length;i++)
 			ids = ids + " " + idList[i];
