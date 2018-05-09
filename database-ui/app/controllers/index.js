@@ -2,7 +2,7 @@ import Controller from '@ember/controller';
 var data = ' ';
 export default Controller.extend({
   ajax: Ember.inject.service(),
-
+  loading : false,
   sortProperties: Ember.computed("model.col", function(){
     if(this.get('model.col') == null) {
       return [''];
@@ -24,6 +24,9 @@ export default Controller.extend({
       var table_name = this.get('table_name');
       if(table_name !== null  && table_name != undefined && table_name != '') {
         var that  = this;
+        this.set('loading',true);
+        this.set('loadingMessage',"Loadingggg...Please wait");
+        var that = this;
         Ember.$.ajax({
           url: "/get_page ",
           type: "POST",
@@ -36,7 +39,7 @@ export default Controller.extend({
             "sortProperties" : that.get('sortProperties')
           }
         }).then(function(resp){
-          alert(resp);
+          //alert(resp);
             var table = document.getElementById("table");
             if(table != null) {
               var rowCount = table.rows.length;
@@ -51,10 +54,12 @@ export default Controller.extend({
               data = JSON.parse(resp);
               that.set('message','');
             }
+            that.set('loading',false);
             that.send('setData');
             that.send('getData');
         }).catch(function(error){
           alert(error);
+          that.set('loading',false);
         });
       }
     },

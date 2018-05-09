@@ -18,9 +18,9 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.node.InternalSettingsPreparer;
-import org.elasticsearch.client.*;
-import org.elasticsearch.transport.netty4.*;
-import org.elasticsearch.transport.*;
+import org.elasticsearch.client.Client;
+//import org.elasticsearch.transport.netty4.*;
+//import org.elasticsearch.transport.*;
 
 
 

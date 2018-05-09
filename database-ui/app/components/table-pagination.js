@@ -8,7 +8,6 @@ export default Ember.Component.extend({
   page: 1,
   paginateBy: 10,
   pageCount: 0,
-
   paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));

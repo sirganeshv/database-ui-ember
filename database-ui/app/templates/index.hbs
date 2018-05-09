@@ -13,7 +13,10 @@ td {
 	margin: 0; padding: 0;
 }
 </style>
-<div>
+	{{#if loading}}
+	  <h2>{{loadingMessage}}</h2>
+	{{else}}
+	<div>
 	{{#each getTables as |table|}}
 		<p>{{table}}</p>
 	{{/each}}
@@ -37,3 +40,4 @@ td {
 {{/table-pagination}}
 </div>
 </center>
+{{/if}}
