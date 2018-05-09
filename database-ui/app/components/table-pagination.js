@@ -8,6 +8,7 @@ export default Ember.Component.extend({
   page: 1,
   paginateBy: 10,
   pageCount: 0,
+  isPresent: false,
   paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
@@ -32,7 +33,14 @@ export default Ember.Component.extend({
             "stop" : j,
           },
           success: function(resp){
-            resolve(JSON.parse(resp).row);
+            if(JSON.parse(resp).row == null) {
+              //alert(JSON.parse(resp).row);
+              that.set('isPresent',false);
+            }
+            else {
+              resolve(JSON.parse(resp).row);
+              that.set('isPresent',true);
+            }
           },
           error: function(reason) {
             reject(reason);

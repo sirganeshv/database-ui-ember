@@ -12,6 +12,7 @@ table {
   width: 180px;
 }
 </style>
+{{#if isPresent}}
 <table id='table'>
     <thead id="tablehead">
       <tr>
@@ -34,3 +35,6 @@ table {
       {{/each}}
     </tbody>
 </table>
+{{else}}
+No data exists
+{{/if}}
