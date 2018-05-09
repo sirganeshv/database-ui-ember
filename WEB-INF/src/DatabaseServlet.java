@@ -32,8 +32,8 @@ public class DatabaseServlet extends HttpServlet{
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
 	private static int lastInsertedRecordID = 0;
-	static Client client;
-	public static Client connect() {
+	static Node node;
+	/*public static Client connect() {
 		try {
 			return new DatabaseServlet().elasticSearchTestNode().client();
 		}
@@ -41,33 +41,38 @@ public class DatabaseServlet extends HttpServlet{
 			e.printStackTrace();
 		}
 		return null;
-	}
+	}*/
 	
-	public Node elasticSearchTestNode() throws NodeValidationException {
-		Node node = new MyNode(
-				Settings.builder()
-						.put("transport.type", "netty4")
-						.put("http.type", "netty4")
-						.put("http.enabled", "true")
-						.put("cluster.name", "elasticsearch")
-						.put("path.home", "elasticsearch-data")
-						//.put("path.home", "C:\\Users\\ganesh-pt1936\\Downloads\\elasticsearch-6.2.3")
-						.build(),
-				Arrays.asList(Netty4Plugin.class));
+	public static Node getNode() throws NodeValidationException {
+		/*Arrays.asList(Netty4Plugin.class));*/
+		node = new Node(
+			Settings.builder()
+			.put("transport.type", "netty4")
+			.put("http.type", "netty4")
+			//.put("http.enabled", "false")
+			.put("cluster.name", "elasticsearch")
+			//.put("path.home", "elasticsearch-data")
+			.put("path.home", "C:\\Users\\ganesh-pt1936\\Downloads\\elasticsearch-6.2.3\\")
+			.build());
 		node.start();
 		return node;
 	}
 
-	private static class MyNode extends Node {
+	/*private static class MyNode extends Node {
 		public MyNode(Settings preparedSettings, Collection<Class<? extends Plugin>> classpathPlugins) {
 			super(InternalSettingsPreparer.prepareEnvironment(preparedSettings, null), classpathPlugins);
 		}
-	}
+	}*/
 	
 	static {
-		client = DatabaseServlet.connect(); 
+		try {
+			node = DatabaseServlet.getNode(); 
+		}
+		catch(NodeValidationException e) {
+			e.printStackTrace();
+		}
 		Database db = new Database();
-		lastInsertedRecordID = db.updateIndex(lastInsertedRecordID,client);
+		lastInsertedRecordID = db.updateIndex(lastInsertedRecordID,node);
 		System.out.println("done");
 	}
 	public void doGet(HttpServletRequest req,HttpServletResponse res)
@@ -118,8 +123,8 @@ public class DatabaseServlet extends HttpServlet{
 						}
 						ElasticClient elasticClient = new ElasticClient();
 						System.out.println("let us print no of records");
-						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,client);
-						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue,client));
+						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
+						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue,node));
 						System.out.println("printed no of records");
 						/*Database db = new Database();
 						if(jsonobj == null)
@@ -172,8 +177,8 @@ public class DatabaseServlet extends HttpServlet{
 							j++;
 						}
 						ElasticClient elasticClient = new ElasticClient();
-						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,client);
-						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,client));
+						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
+						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,node));
 						System.out.println("got page");
 						/*Database db = new Database();
 

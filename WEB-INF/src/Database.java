@@ -9,6 +9,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.*;
 import java.util.ArrayList;
 import org.elasticsearch.client.*;
+import org.elasticsearch.node.Node;	
 
 public class Database {
 	
@@ -19,7 +20,7 @@ public class Database {
 	//private native String getTableAsJson(int lastInsertedRecordID);
 	private native String getTableAsJson(int lastInsertedRecordID);
 	
-	public int updateIndex(int lastInsertedRecordID,Client client) {
+	public int updateIndex(int lastInsertedRecordID,Node node) {
 		try {
 			Database db = new Database();
 			JSONParser parser = new JSONParser();
@@ -29,7 +30,7 @@ public class Database {
 			ElasticClient elasticClient = new ElasticClient();
 			System.out.println(lastInsertedRecordID);
 			//lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID);
-			lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID,client);
+			lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID,node);
 			System.out.println(lastInsertedRecordID);
 		}
 		catch(ParseException ex) {
