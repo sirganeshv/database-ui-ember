@@ -62,6 +62,8 @@ export default Ember.Component.extend({
   numberOfPages: Ember.computed('items','paginateBy','filterValue',function(){
     table_name = this.get('table_name');
     if(table_name !== null && table_name !== undefined && table_name !== "" && this.get('items') !== null) {
+      this.set('page',1);
+      this.set('startPageNumber',1);
       var that  = this;
       Ember.$.ajax({
         url: "/no_of_records",
@@ -86,15 +88,19 @@ export default Ember.Component.extend({
   }),
 
   pageNumbers: Ember.computed('pageCount','startPageNumber', function(){
+    //var num = this.get('pageCount');
+    //alert(this.get('startPageNumber'));
     var start = this.get('startPageNumber');
     var total = this.get('pageCount');
     var diff = total - start;
+    //alert("start = "+start+"  total = "+total);
     var size;
-    if(diff < 9 && start < total)
+    if(diff < 9 && start <= total)
       size = diff;
     else {
       size = 10;
     }
+    //alert(size);
     var n = Array(size);
     var j = 0;
     for(var i = start;j < 10 && i <= total;i++) {
@@ -120,8 +126,10 @@ export default Ember.Component.extend({
       if(this.get('page') + 1 <= this.get('pageCount')) {
         this.set('page', this.get('page') + 1);
       }
+      //alert("page num is "+this.get('page'));
       if((this.get('page') % 10) == 1)
         this.set('startPageNumber',this.get('startPageNumber')+10);
+      //alert(this.get('startPageNumber'));
 
     },
 
