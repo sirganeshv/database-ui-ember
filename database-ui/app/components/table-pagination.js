@@ -9,6 +9,7 @@ export default Ember.Component.extend({
   paginateBy: 10,
   pageCount: 0,
   isPresent: false,
+  startPageNumber: 1,
   paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
@@ -84,11 +85,22 @@ export default Ember.Component.extend({
     }
   }),
 
-  pageNumbers: Ember.computed('pageCount', function(){
-    var num = this.get('pageCount');
-    var n = Array(num);
-    for(var i = 0;i < num;i++)
-      n[i] = i + 1;
+  pageNumbers: Ember.computed('pageCount','startPageNumber', function(){
+    var start = this.get('startPageNumber');
+    var total = this.get('pageCount');
+    var diff = total - start;
+    var size;
+    if(diff < 9 && start < total)
+      size = diff;
+    else {
+      size = 10;
+    }
+    var n = Array(size);
+    var j = 0;
+    for(var i = start;j < 10 && i <= total;i++) {
+      n[j] = i;
+      j++;
+    }
     return n;
   }),
 
@@ -108,12 +120,17 @@ export default Ember.Component.extend({
       if(this.get('page') + 1 <= this.get('pageCount')) {
         this.set('page', this.get('page') + 1);
       }
+      if((this.get('page') % 10) == 1)
+        this.set('startPageNumber',this.get('startPageNumber')+10);
+
     },
 
     previousClicked() {
       if(this.get('page') > 0) {
         this.set('page', this.get('page') - 1);
       }
+      if((this.get('page') % 10) == 0)
+        this.set('startPageNumber',this.get('startPageNumber') - 10);
     },
 
     pageClicked(pageNumber){

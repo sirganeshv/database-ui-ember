@@ -21,16 +21,16 @@
 <ul>
   {{#if showPrevious}}
     <button {{action "previousClicked"}}>{{previousText}}</button>
-  {{else}}
-    <li>{{previousText}}</li>
   {{/if}}
   {{#each pageNumbers as |pageNumber|}}
     <button {{action "pageClicked" pageNumber}}>Page {{pageNumber}}</button>
   {{/each}}
   {{#if showNext}}
     <button {{action "nextClicked"}}>{{nextText}}</button>
-  {{else}}
-    <li>{{nextText}}</li>
   {{/if}}
+  <br>
+  <center>
+    Showing {{page}} out of {{pageCount}}
+  </center>
 </ul>
 {{/if}}
