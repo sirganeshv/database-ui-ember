@@ -1,5 +1,6 @@
 import Controller from '@ember/controller';
 var data = ' ';
+var image_url = "pdf_icon.png";
 export default Controller.extend({
   ajax: Ember.inject.service(),
   loading : false,

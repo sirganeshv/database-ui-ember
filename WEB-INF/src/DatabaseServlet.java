@@ -22,6 +22,23 @@ import org.elasticsearch.client.Client;
 //import org.elasticsearch.transport.netty4.*;
 //import org.elasticsearch.transport.*;
 
+import java.util.HashMap;
+
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.data.JsonDataSource;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.io.*;
 
 
 public class DatabaseServlet extends HttpServlet{
@@ -29,6 +46,7 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String GET_TABLE = "/get_table";
 	private static final String NO_OF_RECORDS = "/no_of_records";
 	private static final String GET_PAGE = "/get_page";
+	private static final String EXPORT_PDF = "/exportPdf";
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
 	private static int lastInsertedRecordID = 0;
@@ -149,6 +167,54 @@ public class DatabaseServlet extends HttpServlet{
 					}
 					else {
 						pw.println("");
+					}
+				}
+				break;
+				case EXPORT_PDF: {
+					System.out.println("Export entered");
+					String table_name = req.getParameter("table_name");
+					String sortProperties = req.getParameter("prop");
+					Boolean isAscending = Boolean.parseBoolean(req.getParameter("isAscending"));
+					String filterCol = req.getParameter("filterCol");
+					String filterValue = req.getParameter("filterValue");
+					System.out.println("Before start");
+					int start = Integer.parseInt(req.getParameter("start"));
+					int stop = Integer.parseInt(req.getParameter("stop"));
+					int paginateBy = stop - start;
+					System.out.println(isAscending);
+					System.out.println("getting page");
+					if(table_name != null) {
+						Statement stmt = conn.createStatement();
+						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
+						rs.next();
+						int count = rs.getInt(1);
+						int[] idList = new int[count];
+						Statement statement = conn.createStatement();
+						ResultSet resultId = statement.executeQuery("select * from id");
+						int j = 0;
+						while(resultId.next()) {
+							idList[j] = resultId.getInt(1);
+							j++;
+						}
+						ElasticClient elasticClient = new ElasticClient();
+						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
+						JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
+						System.out.println("fetched");
+						Test test = new Test();
+						test.testMethod();
+						Export export = new Export();
+						if(events == null) {
+							pw.println("No data to export");
+							break;
+						}
+						System.out.println("Gonna export" + events.toJSONString());
+						export.exportToPdf(events.toJSONString());
+						pw.println(export.getPageNumber());
+							System.out.println("Done exporting reports to pdf");
+						pw.println("Exported successfully at D:\\");
+						}
+					else {
+						pw.println("Failed");
 					}
 				}
 				break;

@@ -228,7 +228,8 @@ public class ElasticClient {
 				SearchResponse response = client.prepareSearch("logs")
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)))
-				.setFrom(start).setSize(paginatedBy).setExplain(true).get();
+				.setFrom(start).setSize(paginatedBy).setExplain(true)
+				.get();
 				
 				JSONObject resp = (JSONObject) parser.parse(response.toString());
 				JSONObject hitss = (JSONObject) resp.get("hits");
@@ -243,6 +244,78 @@ public class ElasticClient {
 		return null;
 	}
 	
+	public JSONObject searchEvents(int[] idList,String filterCol,String filterStr,String sortCol,Boolean isAscending,int paginatedBy,int start,int stop,Node node) {
+		System.out.println("in search method");
+		NodeClient client = (NodeClient)node.client();
+		//TransportClient client = (TransportClient)node.client();
+		String ids = String.valueOf(idList[0]);
+		for(int i = 1;i < idList.length;i++)
+			ids = ids + " " + idList[i];
+		System.out.println(ids);
+		try {
+			JSONParser parser = new JSONParser();
+			if(filterStr != null && !(filterStr.equals("")) && sortCol != null) {
+				SearchResponse response = client.prepareSearch("logs")
+				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)).must(QueryBuilders.matchPhrasePrefixQuery(filterCol,filterStr)))
+				.addSort(sortCol+".keyword",( isAscending ? SortOrder.ASC : SortOrder.DESC))
+				.setPostFilter(QueryBuilders.rangeQuery("eventID").from(start).to(stop))
+				.setSize(1000)
+				.setExplain(true)
+				.get();
+				JSONObject resp = (JSONObject) parser.parse(response.toString());
+				JSONObject hitss = (JSONObject) resp.get("hits");
+				JSONArray hits = (JSONArray) hitss.get("hits");
+				return createJSONObject(hits);
+			}
+			else if(filterStr != null && !(filterStr.equals(""))) {
+				SearchResponse response = client.prepareSearch("logs")
+				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)).must(QueryBuilders.matchPhrasePrefixQuery(filterCol,filterStr)))
+				.setPostFilter(QueryBuilders.rangeQuery("eventID").from(start).to(stop))
+				.setSize(1000)
+				.setExplain(true).get();
+				JSONObject resp = (JSONObject) parser.parse(response.toString());
+				JSONObject hitss = (JSONObject) resp.get("hits");
+				JSONArray hits = (JSONArray) hitss.get("hits");
+				return createJSONObject(hits);
+
+			}			
+			else if(sortCol != null) {
+				SearchResponse response = client.prepareSearch("logs")
+				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)))
+				.addSort(sortCol+".keyword",( isAscending ? SortOrder.ASC : SortOrder.DESC))
+				.setPostFilter(QueryBuilders.rangeQuery("eventID").from(start).to(stop))
+				.setSize(1000)
+				.setExplain(true).get();
+				
+				JSONObject resp = (JSONObject) parser.parse(response.toString());
+				JSONObject hitss = (JSONObject) resp.get("hits");
+				JSONArray hits = (JSONArray) hitss.get("hits");
+				return createJSONObject(hits);
+			}
+			else {
+				System.out.println("into the search area");
+				SearchResponse response = client.prepareSearch("logs")
+				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)))
+				.setPostFilter(QueryBuilders.rangeQuery("eventID").from(start).to(stop))
+				.setSize(1000)
+				.get();
+				
+				JSONObject resp = (JSONObject) parser.parse(response.toString());
+				JSONObject hitss = (JSONObject) resp.get("hits");
+				JSONArray hits = (JSONArray) hitss.get("hits");
+				return createJSONObject(hits);
+				
+			}
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
 	
 	/*public static void main(String[] args) {
 		ElasticClient elasticClient = new ElasticClient();

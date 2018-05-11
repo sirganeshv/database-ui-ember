@@ -1,4 +1,9 @@
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
 <style>
+/*label, input { display:block; }
+  /*input.text { margin-bottom:12px; width:95%; padding: .4em; }
+  fieldset { padding:0; border:0; margin-top:25px; }*/
 table {
 	height: 400px;
 	width: 400px;
@@ -12,32 +17,38 @@ td {
 	width: 100px;
 	margin: 0; padding: 0;
 }
+.export {
+	float: right;
+	background-image: image(url('pdf_icon.png'));
+}
 </style>
-	{{#if loading}}
-	  <h2>{{loadingMessage}}</h2>
-	{{else}}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+{{#if loading}}
+  <h2>{{loadingMessage}}</h2>
+{{else}}
 	<div>
-	{{#each getTables as |table|}}
-		<p>{{table}}</p>
-	{{/each}}
-	{{getTables}}
-	<datalist id="tables">
 		{{#each getTables as |table|}}
-    	{{option value=table}}
+			<p>{{table}}</p>
 		{{/each}}
-  </datalist>
-  <br/>
-  <b>Enter the table_name:</b><br/>
-  {{input list="tables" type="text" id="table_name" name="table_name" value=table_name placeholder="Enter table_name" }}
-  <button {{action "display"}}>Go</button>
-</div>
-<center><br/><br/>
-{{message}}
-<div id="tablediv">
-{{#table-pagination paginateBy=5 sortProperties = sortProperties sortAscending = sortAscending prop = prop table_name = table_name cols=model.col isPresent = isPresent items=model.row as |rows| }}
-	{{#disp-table colData=model.col rowData=rows table_name=table_name sortBy = 'sortBy' isPresent = isPresent}}
-	{{/disp-table}}
-{{/table-pagination}}
-</div>
-</center>
+		{{getTables}}
+		<datalist id="tables">
+			{{#each getTables as |table|}}
+	    	{{option value=table}}
+			{{/each}}
+	  </datalist>
+	  <br/>
+	  <b>Enter the table_name:</b><br/>
+		<img src = "{{image_url}}"/>
+	  {{input list="tables" type="text" id="table_name" name="table_name" value=table_name placeholder="Enter table_name" }}
+		<button {{action "display"}}>Go</button>
+	</div>
+	<center><br/><br/>
+		{{message}}
+		<div id="tablediv">
+			{{#table-pagination paginateBy=5 sortProperties = sortProperties sortAscending = sortAscending prop = prop table_name = table_name cols=model.col isPresent = isPresent items=model.row as |rows| }}
+				{{#disp-table colData=model.col rowData=rows table_name=table_name sortBy = 'sortBy' isPresent = isPresent}}
+				{{/disp-table}}
+			{{/table-pagination}}
+		</div>
+	</center>
 {{/if}}

@@ -1,6 +1,16 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 
+import {
+  next,
+  cancel,
+  later,
+  scheduleOnce,
+  once,
+  throttle,
+  debounce
+} from '@ember/runloop';
+
 var n = 0;
 
 export default Ember.Component.extend({
@@ -10,6 +20,8 @@ export default Ember.Component.extend({
   pageCount: 0,
   isPresent: false,
   startPageNumber: 1,
+  start : 0,
+  end : 0,
   paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
@@ -122,6 +134,34 @@ export default Ember.Component.extend({
   previousText: 'Previous page',
 
   actions: {
+
+    export() {
+      this.set('start',prompt("Enter start eventID"));
+      this.set('end',prompt("From "+ this.get('start') +" to ?"));
+      var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
+      var j = i + parseInt(this.get('paginateBy'));
+      var isConfirmed = confirm("Do you want to export from event ID "+this.get('start')+" to "+this.get('end'));
+      alert(isConfirmed);
+      var that  = this;
+      Ember.$.ajax({
+        url: "/exportPdf",
+        type: "POST",
+        data: {
+          "table_name" : that.get('table_name'),
+          "prop" : that.get('prop'),
+          'isAscending' : that.get('sortAscending'),
+          "start" : that.get('start'),
+          "stop" : that.get('end'),
+          "filterCol" : that.get('filterCol'),
+          "filterValue" : that.get('filterValue'),
+        }
+      }).then(function(resp){
+          alert(resp);
+      }).catch(function(error){
+        alert(error);
+      });
+    },
+
     nextClicked() {
       if(this.get('page') + 1 <= this.get('pageCount')) {
         this.set('page', this.get('page') + 1);

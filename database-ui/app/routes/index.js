@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-
+var image_url = "pdf_icon.png";
 export default Route.extend({
   /*beforeModel() {
     var that  = this;
