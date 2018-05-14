@@ -26,31 +26,22 @@ function checkProgress() {
     type: "POST",
     data: {
     },success : function(resp){
-        //alert("response is "+parseFloat(resp));
         progress = (resp);
-        //alert(Math.ceil(resp* 100) + '%');
-        //document.getElementById('_progress').style.width = '60%';
         document.getElementById('_progress').style.width = Math.ceil(resp* 100) + '%';
-        //alert(resp);
-        //this.set('progress',1.0);
-        //alert("progress is "+this.get('progress'));
-        //that.set('isExporting',false);
+        if(document.getElementById('_progress').style.width === '100%')
+          document.getElementById('_progress').style.width = '0%';
     },error : function(error){
       alert(error);
     }
   });
   if(export_finished === true) {
-    //alert('over');
     clearInterval(myTimer);
   }
-    //setInterval(checkProgress,2);
 };
 /*function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 };*/
-//var exp = document.getElementById('exp');
 export default Ember.Component.extend({
-  //exp.addEventListener('click', startWorker),
   tagName: 'section',
   page: 1,
   paginateBy: 10,
@@ -187,7 +178,6 @@ export default Ember.Component.extend({
       this.set('isExporting',true);
       progress = 0.0;
       export_finished = false;
-      //alert('export');
       Ember.$.ajax({
         url: "/exportPdf",
         type: "POST",
@@ -201,17 +191,15 @@ export default Ember.Component.extend({
           "filterValue" : that.get('filterValue'),
         },success : function(resp){
             alert(resp);
-            //alert(export_finished);
             export_finished = true;
-            //alert(export_finished);
             that.set('isExporting',false);
         },error : function(error){
           alert(error);
         }
       });
-      //alert('export done');
       myTimer = setInterval(function(){checkProgress() },2);
     },
+    
     nextClicked() {
       if(this.get('page') + 1 <= this.get('pageCount')) {
         this.set('page', this.get('page') + 1);
