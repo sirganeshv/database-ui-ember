@@ -7,9 +7,30 @@
       background-color: green;
       background: no-repeat top;
   }
+  .container {
+      width: 500px;
+      margin: 0 auto;
+  }
+  .progress_outer {
+      border: 1px solid #000;
+      align-items: baseline;
+  }
+  .progress {
+      width: 0%;
+      background: #DEDEDE;
+      height: 20px;
+      margin-left: auto;
+  }
 </style>
+<!--div class='container'-->
+
+{{#if isExporting}}
+  <div class='progress_outer'>
+      <div id='_progress' class='progress'></div>
+  </div>
+{{/if}}
 {{#if isPaginated}}
-  <button id = "export-button" class = "export" {{action "export"}}> Export</button>
+  <button id = "export-button" id="exp" class = "export" {{action "export"}}> Export</button>
   {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name"}}
   {{input type="text" value=filterValue name="filterValue" id="filterValue" placeholder="Enter filter Value"}}
   <datalist id="cols">

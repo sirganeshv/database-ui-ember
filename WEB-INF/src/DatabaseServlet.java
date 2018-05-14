@@ -47,6 +47,7 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String NO_OF_RECORDS = "/no_of_records";
 	private static final String GET_PAGE = "/get_page";
 	private static final String EXPORT_PDF = "/exportPdf";
+	private static final String GET_PROGRESS = "/getProgress";
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
 	private static int lastInsertedRecordID = 0;
@@ -207,15 +208,25 @@ public class DatabaseServlet extends HttpServlet{
 							pw.println("No data to export");
 							break;
 						}
-						System.out.println("Gonna export" + events.toJSONString());
+						//System.out.println("Gonna export" + events.toJSONString());
+						//pw.println(0);
+						//pw.flush();
+						//Thread.sleep(1000);
+						//pw.println(1);
+						//pw.flush();
 						export.exportToPdf(events.toJSONString());
-						pw.println(export.getPageNumber());
-							System.out.println("Done exporting reports to pdf");
+						//pw.println(export.getPageNumber());
+						System.out.println("Done exporting reports to pdf");
 						pw.println("Exported successfully at D:\\");
 						}
 					else {
 						pw.println("Failed");
 					}
+				}
+				break;
+				case GET_PROGRESS: {
+					pw.println(new Export().getProgress());
+					//System.out.println("The progress is "+new Export().getProgress());
 				}
 				break;
 				case GET_PAGE: {

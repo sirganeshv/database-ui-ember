@@ -26,8 +26,9 @@ import java.io.*;
 
 public class Export{
 	static int i = 0;
-	int pageNumber;
-	int totalPages = 0;
+	static int pageNumber;
+	static int totalPages = 0;
+	static float progress;
 	
 	Export() {
 		System.out.println("Hello");
@@ -35,6 +36,8 @@ public class Export{
 	
 	public void exportToPdf(String rawJsonData) {
 	//public static void main(String args[]) {
+		pageNumber = 0;
+		totalPages = 0;
 		@SuppressWarnings("rawtypes")
 		JRAbstractExporter exporter = null;
 		i = 0;
@@ -83,6 +86,12 @@ public class Export{
 		return pageNumber;
 	}
 	
+	
+	public float getProgress() {
+		progress = (float)pageNumber/(float)totalPages;
+		return progress;
+	}
+	
 	private  void createPageProgressMonitor(JRAbstractExporter exporter)
 	{
 		exporter.setParameter(JRExporterParameter.PROGRESS_MONITOR, new JRExportProgressMonitor()
@@ -94,6 +103,7 @@ public class Export{
 				pageCount++;
 				setPageNumber(pageCount);
 				System.out.println(pageCount);
+				System.out.println(getProgress());
 			}
 		});
 	}

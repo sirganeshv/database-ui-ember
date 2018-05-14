@@ -260,7 +260,7 @@ public class ElasticClient {
 				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)).must(QueryBuilders.matchPhrasePrefixQuery(filterCol,filterStr)))
 				.addSort(sortCol+".keyword",( isAscending ? SortOrder.ASC : SortOrder.DESC))
 				.setPostFilter(QueryBuilders.rangeQuery("eventID").from(start).to(stop))
-				.setSize(1000)
+				.setSize(10000)
 				.setExplain(true)
 				.get();
 				JSONObject resp = (JSONObject) parser.parse(response.toString());
@@ -273,7 +273,7 @@ public class ElasticClient {
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)).must(QueryBuilders.matchPhrasePrefixQuery(filterCol,filterStr)))
 				.setPostFilter(QueryBuilders.rangeQuery("eventID").from(start).to(stop))
-				.setSize(1000)
+				.setSize(10000)
 				.setExplain(true).get();
 				JSONObject resp = (JSONObject) parser.parse(response.toString());
 				JSONObject hitss = (JSONObject) resp.get("hits");
@@ -287,7 +287,7 @@ public class ElasticClient {
 				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)))
 				.addSort(sortCol+".keyword",( isAscending ? SortOrder.ASC : SortOrder.DESC))
 				.setPostFilter(QueryBuilders.rangeQuery("eventID").from(start).to(stop))
-				.setSize(1000)
+				.setSize(10000)
 				.setExplain(true).get();
 				
 				JSONObject resp = (JSONObject) parser.parse(response.toString());
@@ -301,7 +301,7 @@ public class ElasticClient {
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.setQuery(new BoolQueryBuilder().must(QueryBuilders.matchQuery("eventID",ids)))
 				.setPostFilter(QueryBuilders.rangeQuery("eventID").from(start).to(stop))
-				.setSize(1000)
+				.setSize(10000)
 				.get();
 				
 				JSONObject resp = (JSONObject) parser.parse(response.toString());

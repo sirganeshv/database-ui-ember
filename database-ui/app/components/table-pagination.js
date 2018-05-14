@@ -1,6 +1,8 @@
 import Ember from 'ember';
 import DS from 'ember-data';
-
+//var ProgressBar = require('progressbar.js');
+//import progressbar from 'progressbar';
+//import {worker} from 'ember-multithread';
 import {
   next,
   cancel,
@@ -10,10 +12,45 @@ import {
   throttle,
   debounce
 } from '@ember/runloop';
-
+var  progress = 0.0;
 var n = 0;
-
+//var w;
+var i = 0;
+var myTimer ;
+var _progress = document.getElementById('_progress');
+var export_finished = false;
+function checkProgress() {
+  //if(flag === false)
+  Ember.$.ajax({
+    url: "/getProgress",
+    type: "POST",
+    data: {
+    },success : function(resp){
+        //alert("response is "+parseFloat(resp));
+        progress = (resp);
+        //alert(Math.ceil(resp* 100) + '%');
+        //document.getElementById('_progress').style.width = '60%';
+        document.getElementById('_progress').style.width = Math.ceil(resp* 100) + '%';
+        //alert(resp);
+        //this.set('progress',1.0);
+        //alert("progress is "+this.get('progress'));
+        //that.set('isExporting',false);
+    },error : function(error){
+      alert(error);
+    }
+  });
+  if(export_finished === true) {
+    //alert('over');
+    clearInterval(myTimer);
+  }
+    //setInterval(checkProgress,2);
+};
+/*function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};*/
+//var exp = document.getElementById('exp');
 export default Ember.Component.extend({
+  //exp.addEventListener('click', startWorker),
   tagName: 'section',
   page: 1,
   paginateBy: 10,
@@ -22,6 +59,8 @@ export default Ember.Component.extend({
   startPageNumber: 1,
   start : 0,
   end : 0,
+  isExporting: false,
+
   paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
@@ -141,8 +180,12 @@ export default Ember.Component.extend({
       var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
       var j = i + parseInt(this.get('paginateBy'));
       var isConfirmed = confirm("Do you want to export from event ID "+this.get('start')+" to "+this.get('end'));
-      alert(isConfirmed);
+      //alert(isConfirmed);
       var that  = this;
+      this.set('isExporting',true);
+      progress = 0.0;
+      export_finished = false;
+      //alert('export');
       Ember.$.ajax({
         url: "/exportPdf",
         type: "POST",
@@ -154,14 +197,19 @@ export default Ember.Component.extend({
           "stop" : that.get('end'),
           "filterCol" : that.get('filterCol'),
           "filterValue" : that.get('filterValue'),
+        },success : function(resp){
+            alert(resp);
+            //alert(export_finished);
+            export_finished = true;
+            //alert(export_finished);
+            that.set('isExporting',false);
+        },error : function(error){
+          alert(error);
         }
-      }).then(function(resp){
-          alert(resp);
-      }).catch(function(error){
-        alert(error);
       });
+      //alert('export done');
+      myTimer = setInterval(function(){checkProgress() },2);
     },
-
     nextClicked() {
       if(this.get('page') + 1 <= this.get('pageCount')) {
         this.set('page', this.get('page') + 1);
@@ -183,6 +231,8 @@ export default Ember.Component.extend({
 
     pageClicked(pageNumber){
       this.set('page', pageNumber);
-    }
+    },
+
+
   }
 });

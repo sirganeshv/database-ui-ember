@@ -1,12 +1,22 @@
 'use strict';
 
 const EmberApp = require('ember-cli/lib/broccoli/ember-app');
-
+var pickFiles = require('broccoli-static-compiler');
 module.exports = function(defaults) {
   let app = new EmberApp(defaults, {
     // Add options here
   });
-
+  var workers = pickFiles('workers', {
+    srcDir: '/',
+    files: ['*.js'],
+    destDir: '/assets/workers'
+  });
+  if (process.env.EMBER_ENV === 'production') {
+  workers = require('broccoli-uglify-js')(workers, {
+    mangle: true,
+    compress: true
+  });
+}
   // Use `app.import` to add additional libraries to the generated
   // output files.
   //
