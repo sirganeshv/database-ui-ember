@@ -175,6 +175,8 @@ export default Ember.Component.extend({
   actions: {
 
     export() {
+      //var _progress = document.getElementById('_progress');
+      //_progress.style.width = '0%';
       this.set('start',prompt("Enter start eventID"));
       this.set('end',prompt("From "+ this.get('start') +" to ?"));
       var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
