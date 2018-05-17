@@ -76,9 +76,9 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	col.PushBack("timestamp",allocator);
 	col.PushBack("recordID",allocator);
 	col.PushBack("SecurityID",allocator);
-	col.PushBack("Account Name",allocator);
-	//col.PushBack("Account Domain",allocator);
-	//col.PushBack("Logon ID",allocator);
+	col.PushBack("accountName",allocator);
+	col.PushBack("accountDomain",allocator);
+	col.PushBack("logonID",allocator);
 	//col.PushBack("Session ID",allocator);
 	//obj.AddMember("col",col,allocator);
     HANDLE hEventLog = NULL;
@@ -180,6 +180,24 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			char* pMessage = NULL;
 			LPWSTR pFinalMessage = NULL;
 			bool flag = false;
+			string message;
+			regex securityIDRegex("Security ID:\\s*[-a-zA-z0-9]+");
+			smatch securityIDMatch;
+			string securityID;
+			string trimmedSecurityID;
+			regex accountNameRegex("Account Name:\\s*[-a-zA-z0-9]+");
+			smatch accountNameMatch;
+			string accountName;
+			string trimmedAccountName;
+			regex accountDomainRegex("Account Domain:\\s*[-a-zA-z0-9]+");
+			smatch accountDomainMatch;
+			string accountDomain;
+			string trimmedAccountDomain;
+			regex logonIDRegex("Account Domain:\\s*[-a-zA-z0-9]+");
+			smatch logonIDMatch;
+			string logonID;
+			string trimmedLogonID;
+			regex colon_whitespace(":\\s+");
 			//cout<<"Record id is "<<((PEVENTLOGRECORD)pRecord)->RecordNumber <<" and lastInsertedRecordID is "<<lastInsertedRecordID<<"\n";
 			/*if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
 				lastRecordReached = true;
@@ -192,44 +210,78 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					break;
 				}
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-				//for(int i = 0;i < len;i++) {
-					//if(pId[i] == eventID) {
-						//int i = 0;
-					regex securityRegex("Security ID:\\s*[-a-zA-Z0-9]+");
-					smatch securityMatch;
-					if(eventID == 4800 || eventID == 4801) 
-					{
-						pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
-							((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
-						regex_search(string(pMessage), securityMatch, securityRegex);
-						string securityID;
-						for (auto x : securityMatch) {
-							securityID = x;
-						}
-						regex colon_whitespace(":\\s+");
-						string trimmedID = std::regex_replace(securityID, colon_whitespace, ":");
-						securityID = trimmedID.substr(trimmedID.find(":")+1);
-						securityIDs.push_back(securityID);
-						const char *rec;
-						providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
-						int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
-						rec = (const char *) (intptr_t) (((PEVENTLOGRECORD)pRecord)->RecordNumber);
-						recordID.push_back(rID);
-						GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
-						timestamps.push_back(string(TimeStamp));
-						rowObject.SetObject();
-						rowObject.AddMember("eventID",eventID,allocator);
-						rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
-						rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
-						rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
-						rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
-						rowObject.AddMember("securityID",StringRef(securityIDs[timestamp_index].c_str()),allocator);
-						rows.PushBack(rowObject,allocator);
-						timestamp_index++;
+				if(eventID == 4800 || eventID == 4801 || eventID == 4624 || eventID == 4634 || eventID == 4647) 
+				{
+					pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
+						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
+					message = string(pMessage);
+					//Parse the security ID and store it in vector
+					regex_search(message, securityIDMatch, securityIDRegex);
+					for (auto x : securityIDMatch) {
+						securityID = x;
 					}
-						//break;
-					//}
-				//}
+					trimmedSecurityID = std::regex_replace(securityID, colon_whitespace, ":");
+					securityID = trimmedSecurityID.substr(trimmedSecurityID.find(":")+1);
+					securityIDs.push_back(securityID);
+					cout<<securityID<<endl;
+					//Parse the Account Name and store it in vector
+					regex_search(message, accountNameMatch, accountNameRegex);
+					for (auto x : accountNameMatch) {
+						accountName = x;
+					}
+					trimmedAccountName = std::regex_replace(accountName, colon_whitespace, ":");
+					accountName = trimmedAccountName.substr(trimmedAccountName.find(":")+1);
+					accountNames.push_back(accountName);
+					//Parse the Account Domain and store it in vector
+					regex_search(message, accountDomainMatch, accountDomainRegex);
+					for (auto x : accountDomainMatch) {
+						accountDomain = x;
+					}
+					trimmedAccountDomain = std::regex_replace(accountDomain, colon_whitespace, ":");
+					accountDomain = trimmedAccountDomain.substr(trimmedAccountDomain.find(":")+1);
+					accountDomains.push_back(accountDomain);
+					//Parse the Logon ID and store it in vector
+					regex_search(message, logonIDMatch, logonIDRegex);
+					for (auto x : logonIDMatch) {
+						logonID = x;
+					}
+					trimmedLogonID = std::regex_replace(logonID, colon_whitespace, ":");
+					logonID = trimmedLogonID.substr(trimmedLogonID.find(":")+1);
+					logonIDs.push_back(logonID);
+					//Store other values as json
+					providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
+					int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
+					recordID.push_back(rID);
+					GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
+					timestamps.push_back(string(TimeStamp));
+					rowObject.SetObject();
+					rowObject.AddMember("eventID",eventID,allocator);
+					rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
+					rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
+					rowObject.AddMember("securityID",StringRef(securityIDs[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("accountName",StringRef(accountNames[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("accountDomain",StringRef(accountDomains[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("logonID",StringRef(logonIDs[timestamp_index].c_str()),allocator);
+					rows.PushBack(rowObject,allocator);
+					timestamp_index++;
+				}
+				/*else {
+					providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
+					int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
+					recordID.push_back(rID);
+					GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
+					timestamps.push_back(string(TimeStamp));
+					rowObject.SetObject();
+					rowObject.AddMember("eventID",eventID,allocator);
+					rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
+					rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
+					rows.PushBack(rowObject,allocator);
+					timestamp_index++;
+				}*/
 				pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
 			}
 		}		

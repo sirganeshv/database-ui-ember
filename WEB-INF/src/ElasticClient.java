@@ -45,6 +45,9 @@ public class ElasticClient {
 		String eventType;
 		String timestamp;
 		String securityID;
+		String accountName;
+		String accountDomain;
+		String logonID;
 		JSONArray rows = (JSONArray)json.get("row");
 		JSONArray cols = (JSONArray)json.get("col");
 		if(rows.size() > 0) {
@@ -76,6 +79,9 @@ public class ElasticClient {
 					eventType = String.valueOf(row.get("eventType"));
 					timestamp = String.valueOf(row.get("timestamp"));
 					securityID = String.valueOf(row.get("securityID"));
+					accountName = String.valueOf(row.get("accountName"));
+					accountDomain = String.valueOf(row.get("accountDomain"));
+					logonID = String.valueOf(row.get("logonID"));	
 					/*response = client.prepareIndex("logs", "log", String.valueOf(i))
 					.setSource(jsonBuilder()
 								.startObject()
@@ -94,6 +100,9 @@ public class ElasticClient {
 									.field("eventType", eventType)
 									.field("timestamp",timestamp)
 									.field("securityID",securityID)
+									.field("accountName",accountName)
+									.field("accountDomain",accountDomain)
+									.field("logonID",logonID);
 								.endObject()));
 				}
 				bulkProcessor.flush();

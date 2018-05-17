@@ -31,7 +31,7 @@ public class Export{
 	static float progress;
 	
 	Export() {
-		System.out.println("Hello");
+		//System.out.println((float)pageNumber/(float)totalPages);
 	}
 	
 	public void exportToPdf(String rawJsonData) {

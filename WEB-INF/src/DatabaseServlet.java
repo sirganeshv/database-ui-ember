@@ -4,11 +4,13 @@ import javax.servlet.*;
 import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.simple.JSONArray;
+/*import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.json.simple.parser.JSONParser;
-import org.json.*;
+import org.json.*;*/
+import net.minidev.json.*; 
+import net.minidev.json.parser.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -198,7 +200,7 @@ public class DatabaseServlet extends HttpServlet{
 							j++;
 						}
 						ElasticClient elasticClient = new ElasticClient();
-						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
+						//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
 						JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
 						System.out.println("fetched");
 						Test test = new Test();
