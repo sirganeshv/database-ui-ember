@@ -1,4 +1,3 @@
-
 #include <windows.h>
 #include <stdio.h>
 #include <iostream>
@@ -22,7 +21,7 @@
 #include <clocale>
 #include <locale>
 #include <cwchar>
-
+#include <regex>
 void print_as_wide(const char* mbstr)
 {
     std::mbstate_t state = std::mbstate_t();
@@ -34,11 +33,15 @@ void print_as_wide(const char* mbstr)
 }
 
 #define PROVIDER_NAME L"Security"
-#define RESOURCE_DLL "C:\\Windows\\System32\\evr.dll"
+//#define RESOURCE_DLL "C:\\Windows\\System32\\evr.dll"
+#define RESOURCE_DLL "C:\\Windows\\System32\\adtschema.dll"
 #define MAX_TIMESTAMP_LEN 23 + 1   
 #define MAX_RECORD_BUFFER_SIZE  0x10000  // 64K
+using namespace std;
+
 
 HANDLE GetMessageResources();
+LPSTR GetMessageString(DWORD Id, DWORD argc, LPWSTR args);
 DWORD DumpRecordsInBuffer(PBYTE pBuffer, DWORD dwBytesRead,jint *pid);
 DWORD GetEventTypeName(DWORD EventType);
 void GetTimestamp(const DWORD Time, char* DisplayString);
@@ -48,7 +51,6 @@ std::string extension = std::string(".dat");
 const char* pEventTypeNames[] = {"Error", "Warning", "Informational", "Audit Success", "Audit Failure"};
 	
 HANDLE g_hResources = NULL;
-using namespace std;
 using namespace rapidjson;
 
 int count = 0;
@@ -73,7 +75,12 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	col.PushBack("eventType", allocator);
 	col.PushBack("timestamp",allocator);
 	col.PushBack("recordID",allocator);
-	obj.AddMember("col",col,allocator);
+	col.PushBack("SecurityID",allocator);
+	col.PushBack("Account Name",allocator);
+	//col.PushBack("Account Domain",allocator);
+	//col.PushBack("Logon ID",allocator);
+	//col.PushBack("Session ID",allocator);
+	//obj.AddMember("col",col,allocator);
     HANDLE hEventLog = NULL;
     DWORD status = ERROR_SUCCESS;
     DWORD dwBytesToRead = 0;
@@ -88,12 +95,19 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	vector <string> eventType;
 	vector <string> timestamps;
 	vector <int> recordID;
+	vector <string> messages;
+	vector <string> securityIDs;
+	vector <string> accountNames;
+	vector <string> accountDomains;
+	vector <string> logonIDs;
+	vector <string> sessionIDs;
 	char* TimeStamp[MAX_TIMESTAMP_LEN];
 	int timestamp_index = 0;
 	//wstring;
     // The source name (provider) must exist as a subkey of Application.
 	if(NULL == hEventLog) {
-		hEventLog = OpenEventLog(NULL, (LPCSTR) PROVIDER_NAME);
+		//hEventLog = OpenEventLog(NULL, (LPCSTR) PROVIDER_NAME);
+		hEventLog = OpenEventLog(NULL, "Security");
 		if (NULL == hEventLog)
 		{
 			wprintf(L"OpenEventLog failed with 0x%x.\n", GetLastError());
@@ -158,12 +172,12 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 		else
 		{
 			// Print the contents of each record in the buffer.
-			count++;
+			//count++;
 			DWORD status = ERROR_SUCCESS;
 			unsigned char* pRecord = pBuffer;
 			unsigned char* pEndOfRecords = pBuffer + dwBytesRead;
 			char TimeStamp[MAX_TIMESTAMP_LEN];
-			LPWSTR pMessage = NULL;
+			char* pMessage = NULL;
 			LPWSTR pFinalMessage = NULL;
 			bool flag = false;
 			//cout<<"Record id is "<<((PEVENTLOGRECORD)pRecord)->RecordNumber <<" and lastInsertedRecordID is "<<lastInsertedRecordID<<"\n";
@@ -181,11 +195,25 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 				//for(int i = 0;i < len;i++) {
 					//if(pId[i] == eventID) {
 						//int i = 0;
+					regex securityRegex("Security ID:\\s*[-a-zA-Z0-9]+");
+					smatch securityMatch;
+					if(eventID == 4800 || eventID == 4801) 
+					{
+						pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
+							((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
+						regex_search(string(pMessage), securityMatch, securityRegex);
+						string securityID;
+						for (auto x : securityMatch) {
+							securityID = x;
+						}
+						regex colon_whitespace(":\\s+");
+						string trimmedID = std::regex_replace(securityID, colon_whitespace, ":");
+						securityID = trimmedID.substr(trimmedID.find(":")+1);
+						securityIDs.push_back(securityID);
 						const char *rec;
 						providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
 						int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
 						rec = (const char *) (intptr_t) (((PEVENTLOGRECORD)pRecord)->RecordNumber);
-						//recordID.push_back(string((const char*)(((PEVENTLOGRECORD)pRecord)->RecordNumber)));
 						recordID.push_back(rID);
 						GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
 						timestamps.push_back(string(TimeStamp));
@@ -195,8 +223,10 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
 						rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
 						rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
+						rowObject.AddMember("securityID",StringRef(securityIDs[timestamp_index].c_str()),allocator);
 						rows.PushBack(rowObject,allocator);
 						timestamp_index++;
+					}
 						//break;
 					//}
 				//}
@@ -210,6 +240,10 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	obj.Accept(writer);
 	//cout<<"The final buffer is "<<endl<<buffer.GetString()<<endl<<endl;
 	CloseEventLog(hEventLog);
+	providers.clear();
+	timestamps.clear();
+	recordID.clear();
+	securityIDs.clear();
 	return env->NewStringUTF(buffer.GetString());
 }
 
@@ -254,6 +288,60 @@ DWORD GetEventTypeName(DWORD EventType)
 
     return index;
 }
+
+
+LPSTR GetMessageString(DWORD MessageId, DWORD argc, LPWSTR argv)
+{
+    LPSTR pMessage = NULL;
+    DWORD dwFormatFlags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_ALLOCATE_BUFFER;
+    DWORD_PTR* pArgs = NULL;
+    LPCTSTR pString = (LPCTSTR)argv;
+	//cout<<argc<<endl;
+
+    // The insertion strings appended to the end of the event record
+    // are an array of strings; however, FormatMessage requires
+    // an array of addresses. Create an array of DWORD_PTRs based on
+    // the count of strings. Assign the address of each string
+    // to an element in the array (maintaining the same order).
+    if (argc > 0)
+    {
+        pArgs = (DWORD_PTR*)malloc(sizeof(DWORD_PTR) * argc);
+        if (pArgs)
+        {
+            dwFormatFlags |= FORMAT_MESSAGE_ARGUMENT_ARRAY;
+			//cout<<"pargs is "<<endl;
+            for (DWORD i = 0; i < argc; i++)
+            {
+                pArgs[i] = (DWORD_PTR)pString;
+				//cout<<pArgs[i]<<endl;
+                pString += strlen((pString)) + 1;
+				//cout<<pString<<"\t";
+            }
+			//cout<<endl;
+        }
+        else
+        {
+            dwFormatFlags |= FORMAT_MESSAGE_IGNORE_INSERTS;
+            wprintf(L"Failed to allocate memory for the insert string array.\n");
+        }
+    }
+	//cout<<"MessageId is "<<MessageId<<endl;
+	if (!FormatMessage(dwFormatFlags,
+                       (LPCVOID)g_hResources,
+                       MessageId,
+                       0,  
+                       (LPSTR)&pMessage, 
+                       0, 
+                       (va_list*)pArgs))
+    {
+        wprintf(L"Format message failed with %lu\n", GetLastError());
+    }
+    if (pArgs)
+        free(pArgs);
+
+    return pMessage;
+}
+
 
 // Get a string that contains the time stamp of when the event 
 // was generated.

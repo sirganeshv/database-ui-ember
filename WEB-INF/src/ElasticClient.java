@@ -26,11 +26,13 @@ import java.util.*;
 import java.net.InetAddress;
 import java.io.*;
 
-import org.json.simple.JSONArray;
+/*import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.json.simple.parser.JSONParser;
-import org.json.*;
+import org.json.*;*/
+import net.minidev.json.*; 
+import net.minidev.json.parser.*;
 
 public class ElasticClient {
 
@@ -42,6 +44,7 @@ public class ElasticClient {
 		String eventProvider;
 		String eventType;
 		String timestamp;
+		String securityID;
 		JSONArray rows = (JSONArray)json.get("row");
 		JSONArray cols = (JSONArray)json.get("col");
 		if(rows.size() > 0) {
@@ -72,6 +75,7 @@ public class ElasticClient {
 					eventProvider = String.valueOf(row.get("eventProvider"));
 					eventType = String.valueOf(row.get("eventType"));
 					timestamp = String.valueOf(row.get("timestamp"));
+					securityID = String.valueOf(row.get("securityID"));
 					/*response = client.prepareIndex("logs", "log", String.valueOf(i))
 					.setSource(jsonBuilder()
 								.startObject()
@@ -89,6 +93,7 @@ public class ElasticClient {
 									.field("eventProvider", eventProvider)
 									.field("eventType", eventType)
 									.field("timestamp",timestamp)
+									.field("securityID",securityID)
 								.endObject()));
 				}
 				bulkProcessor.flush();
