@@ -48,6 +48,7 @@ public class ElasticClient {
 		String accountName;
 		String accountDomain;
 		String logonID;
+		String message;
 		JSONArray rows = (JSONArray)json.get("row");
 		JSONArray cols = (JSONArray)json.get("col");
 		if(rows.size() > 0) {
@@ -82,6 +83,7 @@ public class ElasticClient {
 					accountName = String.valueOf(row.get("accountName"));
 					accountDomain = String.valueOf(row.get("accountDomain"));
 					logonID = String.valueOf(row.get("logonID"));	
+					message = String.valueOf(row.get("message"));
 					/*response = client.prepareIndex("logs", "log", String.valueOf(i))
 					.setSource(jsonBuilder()
 								.startObject()
@@ -102,6 +104,7 @@ public class ElasticClient {
 									.field("securityID",securityID)
 									.field("accountName",accountName)
 									.field("accountDomain",accountDomain)
+									.field("message",message)
 									.field("logonID",logonID)
 								.endObject()));
 				}

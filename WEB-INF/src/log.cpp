@@ -83,6 +83,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	col.PushBack("accountName",allocator);
 	col.PushBack("accountDomain",allocator);
 	col.PushBack("logonID",allocator);
+	col.PushBack("message",allocator);
 	//col.PushBack("Session ID",allocator);
 	//obj.AddMember("col",col,allocator);
     HANDLE hEventLog = NULL;
@@ -197,7 +198,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			smatch accountDomainMatch;
 			string accountDomain;
 			string trimmedAccountDomain;
-			regex logonIDRegex("Account Domain:\\s*[-a-zA-z0-9]+");
+			regex logonIDRegex("Logon ID:\\s*[-a-zA-z0-9]+");
 			smatch logonIDMatch;
 			string logonID;
 			string trimmedLogonID;
@@ -219,6 +220,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
 						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
 					message = string(pMessage);
+					messages.push_back(message);
 					cout<<message<<endl;
 					//Parse the security ID and store it in vector
 					regex_search(message, securityIDMatch, securityIDRegex);
@@ -269,6 +271,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					rowObject.AddMember("accountName",StringRef(accountNames[timestamp_index].c_str()),allocator);
 					rowObject.AddMember("accountDomain",StringRef(accountDomains[timestamp_index].c_str()),allocator);
 					rowObject.AddMember("logonID",StringRef(logonIDs[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("message",StringRef(messages[timestamp_index].c_str()),allocator);
 					rows.PushBack(rowObject,allocator);
 					timestamp_index++;
 				}
