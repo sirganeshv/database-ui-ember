@@ -37,6 +37,10 @@ void print_as_wide(const char* mbstr)
 #define RESOURCE_DLL "C:\\Windows\\System32\\adtschema.dll"
 #define MAX_TIMESTAMP_LEN 23 + 1   
 #define MAX_RECORD_BUFFER_SIZE  0x10000  // 64K
+LPCSTR RESOURCE_DLL_LIST[] = {"C:\\Windows\\System32\\adtschema.dll","C:\\Windows\\System32\\wevtsvc.dll",
+	"C:\\Windows\\System32\\MsAuditE.dll","C:\\Windows\\System32\\MsObjs.dll"};
+int current_dll_position = 0;
+
 using namespace std;
 
 
@@ -215,6 +219,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
 						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
 					message = string(pMessage);
+					cout<<message<<endl;
 					//Parse the security ID and store it in vector
 					regex_search(message, securityIDMatch, securityIDRegex);
 					for (auto x : securityIDMatch) {
@@ -305,7 +310,7 @@ HANDLE GetMessageResources()
 {
     HANDLE hResources = NULL;
 
-    hResources = LoadLibraryEx(RESOURCE_DLL, NULL, LOAD_LIBRARY_AS_IMAGE_RESOURCE | LOAD_LIBRARY_AS_DATAFILE);
+    hResources = LoadLibraryEx(RESOURCE_DLL_LIST[current_dll_position], NULL, LOAD_LIBRARY_AS_IMAGE_RESOURCE | LOAD_LIBRARY_AS_DATAFILE);
     if (NULL == hResources)
     {
         wprintf(L"LoadLibrary failed with %lu.\n", GetLastError());
@@ -378,20 +383,254 @@ LPSTR GetMessageString(DWORD MessageId, DWORD argc, LPWSTR argv)
         }
     }
 	//cout<<"MessageId is "<<MessageId<<endl;
-	if (!FormatMessage(dwFormatFlags,
+	int j = 0;
+	while (!FormatMessage(dwFormatFlags,
+                       (LPCVOID)g_hResources,
+                       MessageId,
+                       0,  
+                       (LPSTR)&pMessage, 
+                       0, 
+                       (va_list*)pArgs) && j < 4)
+    {
+        current_dll_position = (current_dll_position+1)%4;
+		g_hResources = GetMessageResources();
+		j++;
+    }
+	if(!FormatMessage(dwFormatFlags,
                        (LPCVOID)g_hResources,
                        MessageId,
                        0,  
                        (LPSTR)&pMessage, 
                        0, 
                        (va_list*)pArgs))
-    {
-        wprintf(L"Format message failed with %lu\n", GetLastError());
-    }
+		wprintf(L"Format message failed with %lu\n", GetLastError());
     if (pArgs)
         free(pArgs);
 
     return pMessage;
+}
+
+
+// If the message string contains parameter insertion strings (for example, %%4096),
+// you must perform the parameter substitution yourself. To get the parameter message 
+// string, call FormatMessage with the message identifier found in the parameter insertion 
+// string (for example, 4096 is the message identifier if the parameter insertion string
+// is %%4096). You then substitute the parameter insertion string in the message 
+// string with the actual parameter message string. 
+DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage)
+{
+    DWORD status = ERROR_SUCCESS;
+    DWORD dwParameterCount = 0;  // Number of insertion strings found in pMessage
+    size_t cbBuffer = 0;         // Size of the buffer in bytes
+    size_t cchBuffer = 0;        // Size of the buffer in characters
+    size_t cchParameters = 0;    // Number of characters in all the parameter strings
+    size_t cch = 0;
+    DWORD i = 0;
+    LPSTR* pStartingAddresses = NULL;  // Array of pointers to the beginning of each parameter string in pMessage
+    LPSTR* pEndingAddresses = NULL;    // Array of pointers to the end of each parameter string in pMessage
+    DWORD* pParameterIDs = NULL;        // Array of parameter identifiers found in pMessage
+    LPSTR* pParameters = NULL;         // Array of the actual parameter strings
+    LPSTR pTempMessage = (LPSTR)pMessage;
+    LPSTR pTempFinalMessage = NULL;
+    // Determine the number of parameter insertion strings in pMessage.
+    while (pTempMessage = strchr(pTempMessage, '%'))
+    {
+        dwParameterCount++;
+        pTempMessage++;
+		pTempMessage++;
+    }
+	
+    // If there are no parameter insertion strings in pMessage, return.
+    if (0 == dwParameterCount)
+    {
+        pFinalMessage = NULL;
+        goto cleanup;
+    }
+
+    // Allocate an array of pointers that will contain the beginning address 
+    // of each parameter insertion string.
+    cbBuffer = sizeof(LPSTR) * dwParameterCount;
+    pStartingAddresses = (LPSTR*)malloc(cbBuffer);
+    if (NULL == pStartingAddresses)
+    {
+        wprintf(L"Failed to allocate memory for pStartingAddresses.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+
+    RtlZeroMemory(pStartingAddresses, cbBuffer);
+
+    // Allocate an array of pointers that will contain the ending address (one
+    // character past the of the identifier) of the each parameter insertion string.
+    pEndingAddresses = (LPSTR*)malloc(cbBuffer);
+    if (NULL == pEndingAddresses)
+    {
+        wprintf(L"Failed to allocate memory for pEndingAddresses.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+
+    RtlZeroMemory(pEndingAddresses, cbBuffer);
+	
+    // Allocate an array of pointers that will contain pointers to the actual
+    // parameter strings.
+    pParameters = (LPSTR*)malloc(cbBuffer);
+    if (NULL == pParameters)
+    {
+        wprintf(L"Failed to allocate memory for pEndingAddresses.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+
+    RtlZeroMemory(pParameters, cbBuffer);
+
+    // Allocate an array of DWORDs that will contain the message identifier
+    // for each parameter.
+    pParameterIDs = (DWORD*)malloc(cbBuffer);
+    if (NULL == pParameterIDs)
+    {
+        wprintf(L"Failed to allocate memory for pParameterIDs.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+
+    RtlZeroMemory(pParameterIDs, cbBuffer);
+
+    // Find each parameter in pMessage and get the pointer to the
+    // beginning of the insertion string, the end of the insertion string,
+    // and the message identifier of the parameter.
+    pTempMessage = (LPSTR)pMessage;
+		cout<<endl<<endl<<endl<<"Apply parameters"<<endl<<endl<<endl;
+    while (pTempMessage = strchr(pTempMessage, '%'))
+    {
+		//cout<<pTempMessage+1<<endl;
+        if (isdigit(*(pTempMessage+2)))
+        {
+            pStartingAddresses[i] = pTempMessage;
+
+            pTempMessage++;
+			pTempMessage++;
+            pParameterIDs[i] = (DWORD)atoi(pTempMessage);
+			cout<<pParameterIDs[i]<<endl;
+            while (isdigit(*++pTempMessage))
+                ;
+
+            pEndingAddresses[i] = pTempMessage;
+
+            i++;
+        }
+		else
+			pTempMessage++;
+    }
+	
+    // For each parameter, use the message identifier to get the
+    // actual parameter string.
+	cout<<"Parameters are "<<endl;
+    for (DWORD i = 0; i < dwParameterCount; i++)
+    {
+        //pParameters[i] = (LPSTR)GetMessageString(pParameterIDs[i], 0, NULL);
+		cout<<"For parameter :"<<pParameterIDs[i]<<endl;
+        pParameters[i] = (LPSTR)GetMessageString(pParameterIDs[i], 0, NULL);
+		cout<<"para :"<<pParameters[i]<<endl;
+        if (NULL == pParameters[i])
+        {
+            wprintf(L"GetMessageString could not find parameter string for insert %lu.\n", i);
+            status = ERROR_INVALID_PARAMETER;
+            goto cleanup;
+        }
+
+        cchParameters += strlen(pParameters[i]);
+    }
+	cout<<"Operation success"<<endl;
+    // Allocate enough memory for pFinalMessage based on the length of pMessage
+    // and the length of each parameter string. The pFinalMessage buffer will contain 
+    // the completed parameter substitution.
+    pTempMessage = (LPSTR)pMessage;
+    cbBuffer = (strlen(pMessage) + cchParameters + 1) * sizeof(CHAR);
+    pFinalMessage = (LPSTR)malloc(cbBuffer);
+    if (NULL == pFinalMessage)
+    {
+        wprintf(L"Failed to allocate memory for pFinalMessage.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+	cout<<"Operation success"<<endl;
+    RtlZeroMemory(pFinalMessage, cbBuffer);
+    cchBuffer = cbBuffer / sizeof(CHAR);
+    pTempFinalMessage = pFinalMessage;
+	cout<<"Operation success"<<endl;
+    // Build the final message string.
+    for (DWORD i = 0; i < dwParameterCount; i++)
+    {
+		cout<<"test op"<<endl;
+        // Append the segment from pMessage. In the first iteration, this is "8 " and in the
+        // second iteration, this is " = 2 ".
+		/*#ifdef __STDC_LIB_EXT1__
+			cout<<"test success"<<endl; 
+			strcpy_s(pTempFinalMessage, cchBuffer, pTempMessage, cch = (pStartingAddresses[i] - pTempMessage));
+			pTempMessage = pEndingAddresses[i];
+			cchBuffer -= cch;
+			cout<<"Temp final is :     "<<pTempFinalMessage<<endl;
+			// Append the parameter string. In the first iteration, this is "quarts" and in the
+			// second iteration, this is "gallons"
+			pTempFinalMessage += cch;
+			strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
+			//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
+			cchBuffer -= cch = strlen(pParameters[i]);
+
+			pTempFinalMessage += cch;
+		#endif
+    }
+	cout<<"ptempfinal message is "<<pTempFinalMessage<<endl;
+	#ifdef __STDC_LIB_EXT1__
+		// Append the last segment from pMessage, which is ".".
+		strcpy_s(pTempFinalMessage, cchBuffer, pTempMessage);
+	#endif*/
+	
+			cout<<"test success"<<endl; 
+			cch = (pStartingAddresses[i] - pTempMessage);
+			strcat(pTempFinalMessage, (string(pTempMessage).substr(0,cch)).c_str());
+			pTempMessage = pEndingAddresses[i];
+			cchBuffer -= cch;
+			cout<<"Temp final is :     "<<pTempFinalMessage<<endl;
+			// Append the parameter string. In the first iteration, this is "quarts" and in the
+			// second iteration, this is "gallons"
+			//pTempFinalMessage += cch;
+			strcat(pTempFinalMessage,pParameters[i]);
+			//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
+			//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
+			cchBuffer -= (cch = strlen(pParameters[i]));
+			cout<<"after param is "<<pTempFinalMessage<<endl;
+			//pTempFinalMessage += cch;
+		//#endif
+    }
+	cout<<"ptempfinal message is "<<pTempFinalMessage<<endl;
+	//#ifdef __STDC_LIB_EXT1__
+		// Append the last segment from pMessage, which is ".".
+		strcpy(pTempFinalMessage, pTempMessage);
+	//#endif
+
+cleanup:
+
+    if (ERROR_SUCCESS != status)
+        pFinalMessage = (LPSTR)pMessage;
+
+    if (pStartingAddresses)
+        free(pStartingAddresses);
+
+    if (pEndingAddresses)
+        free(pEndingAddresses);
+
+    if (pParameterIDs)
+        free(pParameterIDs);
+
+    for (DWORD i = 0; i < dwParameterCount; i++)
+    {
+        if (pParameters[i])
+            LocalFree(pParameters[i]);
+    }
+
+    return status;
 }
 
 

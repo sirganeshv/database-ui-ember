@@ -102,7 +102,7 @@ public class ElasticClient {
 									.field("securityID",securityID)
 									.field("accountName",accountName)
 									.field("accountDomain",accountDomain)
-									.field("logonID",logonID);
+									.field("logonID",logonID)
 								.endObject()));
 				}
 				bulkProcessor.flush();

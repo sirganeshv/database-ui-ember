@@ -45,8 +45,8 @@ public class Export{
 		HashMap hm = null;
 		try {
 			System.out.println("Start ....");
-			String jrxmlFileName = "D:\\JasperReports\\Reports\\C1_report.jrxml";
-			String jasperFileName = "D:\\JasperReports\\Reports\\sample.jasper";
+			String jrxmlFileName = "C:\\xampp\\tomcat\\webapps\\table_details\\design.jrxml";
+			String jasperFileName = "sample.jasper";
 			String pdfFileName = "D:\\eventDetails.pdf";
 
 			JasperCompileManager.compileReportToFile(jrxmlFileName, jasperFileName);
@@ -55,7 +55,7 @@ public class Export{
 			//String rawJsonDataa = "[{\"eventID\":\"4879\",\"eventProvider\":\"MSDTC Client 2\",\"eventType\":\"Warning\",\"timestamp\":\"02-05-2018 11:10:00\"},{\"eventID\":\"4879\",\"eventProvider\":\"MSDTC Client 2\",\"eventType\":\"Warning\",\"timestamp\":\"02-05-2018 11:12:48\"}]";
 			//String rawJsonDataa = "[{\"eventID\":\"4879\",\"eventProvider\":\"MSDTC Client 2\"},{\"eventID\":\"4879\",\"eventProvider\":\"MSDTC Client 2\"}]";
 			//,{"eventID":"2484","eventProvider":"Microsoft-Windows-Immersive-Shell","eventType":"Error","timestamp":"03-28-2018 19:32:37"},{"eventID":"2484","eventProvider":"Microsoft-Windows-Immersive-Shell","eventType":"Error","timestamp":"02-28-2018 21:39:39"},{"eventID":"2484","eventProvider":"Microsoft-Windows-Immersive-Shell","eventType":"Error","timestamp":"03-28-2018 19:32:35"}]"
-			JasperReport report = (JasperReport) JRLoader.loadObject(new File("D:\\JasperReports\\Reports\\Sample.jasper"));
+			JasperReport report = (JasperReport) JRLoader.loadObject(new File("Sample.jasper"));
 			ByteArrayInputStream jsonDataStream = new ByteArrayInputStream(rawJsonData.getBytes());
 			JsonDataSource ds = new JsonDataSource(jsonDataStream);
 			Map parameters = new HashMap();
