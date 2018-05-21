@@ -22,9 +22,12 @@ import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.node.Node;	
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
+import org.elasticsearch.common.xcontent.XContentBuilder;
 import java.util.*;
 import java.net.InetAddress;
 import java.io.*;
+import java.util.regex.Pattern;  
+import java.util.regex.Matcher; 
 
 /*import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -94,19 +97,36 @@ public class ElasticClient {
 								.endObject()
 							  )
 					.get();*/
-					bulkProcessor.add(new IndexRequest("logs", "log", String.valueOf(row.get("recordID")))
-						.source(jsonBuilder()
-								.startObject()
+					//Pattern pattern = Pattern.compile("^\\n[a-zA-Z\\s]+:\\s+\\S+\\n");
+					XContentBuilder jsonStr = jsonBuilder()
+									.startObject()
 									.field("eventID", eventID)
 									.field("eventProvider", eventProvider)
 									.field("eventType", eventType)
-									.field("timestamp",timestamp)
+									.field("timestamp",timestamp);
+					Pattern pattern = Pattern.compile("[a-zA-Z0-9\\s]+:\\t+\\S+");
+					Matcher matcher = pattern.matcher(message);
+					boolean found = false;    
+					while (matcher.find()) {    
+						/*System.out.println("I found the text "+matcher.group()+" starting at index "+    
+						matcher.start()+" and ending at index "+matcher.end());  */
+						String parameter = matcher.group();
+						String param[] = parameter.split(":");
+						String key = param[0].trim();
+						String value = param[1].trim();
+						jsonStr.field(key,value);
+						found = true;    
+					}    
+					if(found == false)
+						System.out.println("No text found\n");
+					bulkProcessor.add(new IndexRequest("logs", "log", String.valueOf(row.get("recordID")))
+						.source(jsonStr.endObject()));
 									/*.field("securityID",securityID)
 									.field("accountName",accountName)
 									.field("accountDomain",accountDomain)
 									.field("logonID",logonID)*/
-									.field("message",message)
-								.endObject()));
+									/*.field("message",message)
+								.endObject()));*/
 				}
 				bulkProcessor.flush();
 				bulkProcessor.close();
