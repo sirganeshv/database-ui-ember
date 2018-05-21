@@ -226,7 +226,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					break;
 				}
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-				if(eventID == 4800 || eventID == 4801 || eventID == 4634 || eventID == 4647) 
+				if(eventID == 4800 || eventID == 4801 || eventID == 4624 || eventID == 4634 || eventID == 4647) 
 				{
 					pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
 						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));

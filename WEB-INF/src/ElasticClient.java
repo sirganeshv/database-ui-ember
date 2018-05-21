@@ -104,6 +104,7 @@ public class ElasticClient {
 									.field("eventProvider", eventProvider)
 									.field("eventType", eventType)
 									.field("timestamp",timestamp);
+					StringBuilder keyValuePairs = new StringBuilder();
 					Pattern pattern = Pattern.compile("[a-zA-Z0-9\\s]+:\\t+\\S+");
 					Matcher matcher = pattern.matcher(message);
 					boolean found = false;    
@@ -114,11 +115,12 @@ public class ElasticClient {
 						String param[] = parameter.split(":");
 						String key = param[0].trim();
 						String value = param[1].trim();
-						jsonStr.field(key,value);
+						keyValuePairs.append(key).append(" : ").append(value).append("\n");
 						found = true;    
 					}    
-					if(found == false)
-						System.out.println("No text found\n");
+					
+					if(found == true)
+						jsonStr.field("parsedFields",keyValuePairs);
 					bulkProcessor.add(new IndexRequest("logs", "log", String.valueOf(row.get("recordID")))
 						.source(jsonStr.endObject()));
 									/*.field("securityID",securityID)
