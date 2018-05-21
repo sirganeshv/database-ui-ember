@@ -217,6 +217,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			while (pRecord < pEndOfRecords) {
 				LPSTR pMess = NULL;
 				char* pMessage = NULL;
+				char* finalMessage = NULL;
 				LPSTR pFinalMessage = NULL;
 				pParameters = NULL;
 				parameterCount = 0;
@@ -232,13 +233,16 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
 					pMess = GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
 						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
-					cout<<"pmess is "<<pMess<<endl;
+					//cout<<"pmess is "<<pMess<<endl;
 					if (pMess)
 					{
 						//parameterCount = GetParameterCount(pMess);
 						//pParameters = GetParameters(pMess);
 						status = ApplyParameterStringsToMessage(pMess, pFinalMessage);
 						cout<<"event message is "<<((pFinalMessage) ? pFinalMessage : pMess)<<endl;
+						//pMessage = (char*)pFinalMessage;
+						//finalMessage = (char*)pFinalMessage;
+						//message = string(pFinalMessage);
 						pMess = NULL;
 
 						if (pFinalMessage)
@@ -260,7 +264,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					trimmedSecurityID = std::regex_replace(securityID, colon_whitespace, ":");
 					securityID = trimmedSecurityID.substr(trimmedSecurityID.find(":")+1);
 					//securityIDs.push_back(securityID);
-					cout<<securityID<<endl;
+					//cout<<securityID<<endl;
 					//Parse the Account Name and store it in vector
 					regex_search(message, accountNameMatch, accountNameRegex);
 					for (auto x : accountNameMatch) {
@@ -385,8 +389,8 @@ LPSTR GetMessageString(DWORD MessageId, DWORD argc, LPWSTR argv)
     LPSTR pMessage = NULL;
     DWORD dwFormatFlags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_ALLOCATE_BUFFER;
     DWORD_PTR* pArgs = NULL;
-    LPCTSTR pString = (LPCTSTR)argv;
-	//cout<<argc<<endl;
+    LPSTR pString = (LPSTR)argv;
+	cout<<"argc is "<<argc<<endl;
 
     // The insertion strings appended to the end of the event record
     // are an array of strings; however, FormatMessage requires
@@ -405,7 +409,7 @@ LPSTR GetMessageString(DWORD MessageId, DWORD argc, LPWSTR argv)
                 pArgs[i] = (DWORD_PTR)pString;
 				//cout<<pArgs[i]<<endl;
                 pString += strlen((pString)) + 1;
-				//cout<<pString<<"\t";
+				cout<<pString<<"\t";
             }
 			//cout<<endl;
         }
@@ -417,6 +421,8 @@ LPSTR GetMessageString(DWORD MessageId, DWORD argc, LPWSTR argv)
     }
 	//cout<<"MessageId is "<<MessageId<<endl;
 	int j = 0;
+	current_dll_position = 0;
+	g_hResources = GetMessageResources();
 	while (!FormatMessage(dwFormatFlags,
                        (LPCVOID)g_hResources,
                        MessageId,
@@ -533,7 +539,7 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
     // beginning of the insertion string, the end of the insertion string,
     // and the message identifier of the parameter.
     pTempMessage = (LPSTR)pMessage;
-		cout<<endl<<endl<<endl<<"Apply parameters"<<endl<<endl<<endl;
+		//cout<<endl<<endl<<endl<<"Apply parameters"<<endl<<endl<<endl;
     while (pTempMessage = strchr(pTempMessage, '%'))
     {
 		//cout<<pTempMessage+1<<endl;
@@ -544,7 +550,7 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
             pTempMessage++;
 			pTempMessage++;
             pParameterIDs[i] = (DWORD)atoi(pTempMessage);
-			cout<<pParameterIDs[i]<<endl;
+			//cout<<pParameterIDs[i]<<endl;
             while (isdigit(*++pTempMessage))
                 ;
 
@@ -558,13 +564,13 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
 	
     // For each parameter, use the message identifier to get the
     // actual parameter string.
-	cout<<"Parameters are "<<endl;
+	//cout<<"Parameters are "<<endl;
     for (DWORD i = 0; i < dwParameterCount; i++)
     {
         //pParameters[i] = (LPSTR)GetMessageString(pParameterIDs[i], 0, NULL);
-		cout<<"For parameter :"<<pParameterIDs[i]<<endl;
+		//cout<<"For parameter :"<<pParameterIDs[i]<<endl;
         pParameters[i] = (LPSTR)GetMessageString(pParameterIDs[i], 0, NULL);
-		cout<<"para :"<<pParameters[i]<<endl;
+		//cout<<"para :"<<pParameters[i]<<endl;
         if (NULL == pParameters[i])
         {
             wprintf(L"GetMessageString could not find parameter string for insert %lu.\n", i);
@@ -574,7 +580,7 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
 
         cchParameters += strlen(pParameters[i]);
     }
-	cout<<"Operation success"<<endl;
+	//cout<<"Operation success"<<endl;
     // Allocate enough memory for pFinalMessage based on the length of pMessage
     // and the length of each parameter string. The pFinalMessage buffer will contain 
     // the completed parameter substitution.
@@ -587,11 +593,11 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
         status = ERROR_OUTOFMEMORY;
         goto cleanup;
     }
-	cout<<"Operation success"<<endl;
+	//cout<<"Operation success"<<endl;
     RtlZeroMemory(pFinalMessage, cbBuffer);
     cchBuffer = cbBuffer / sizeof(CHAR);
     pTempFinalMessage = pFinalMessage;
-	cout<<"Operation success"<<endl;
+	//cout<<"Operation success"<<endl;
     // Build the final message string.
     for (DWORD i = 0; i < dwParameterCount; i++)
     {
