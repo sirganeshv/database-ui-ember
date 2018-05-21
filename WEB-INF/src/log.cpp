@@ -47,8 +47,11 @@ using namespace std;
 HANDLE GetMessageResources();
 LPSTR GetMessageString(DWORD Id, DWORD argc, LPWSTR args);
 DWORD DumpRecordsInBuffer(PBYTE pBuffer, DWORD dwBytesRead,jint *pid);
+DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage);
 DWORD GetEventTypeName(DWORD EventType);
 void GetTimestamp(const DWORD Time, char* DisplayString);
+LPSTR* GetParameters(CONST LPSTR pMessage);
+int GetParameterCount(CONST LPSTR pMessage);
 std::string newTimeStamp = std::string("");
 std::string extension = std::string(".dat");
 
@@ -182,8 +185,9 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			unsigned char* pRecord = pBuffer;
 			unsigned char* pEndOfRecords = pBuffer + dwBytesRead;
 			char TimeStamp[MAX_TIMESTAMP_LEN];
+			LPSTR pMess = NULL;
 			char* pMessage = NULL;
-			LPWSTR pFinalMessage = NULL;
+			LPSTR pFinalMessage = NULL;
 			bool flag = false;
 			string message;
 			regex securityIDRegex("Security ID:\\s*[-a-zA-z0-9]+");
@@ -203,25 +207,51 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			string logonID;
 			string trimmedLogonID;
 			regex colon_whitespace(":\\s+");
+			LPSTR* pParameters;
+			int parameterCount;
 			//cout<<"Record id is "<<((PEVENTLOGRECORD)pRecord)->RecordNumber <<" and lastInsertedRecordID is "<<lastInsertedRecordID<<"\n";
 			/*if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
 				lastRecordReached = true;
 				break;
 			}*/
 			while (pRecord < pEndOfRecords) {
+				LPSTR pMess = NULL;
+				char* pMessage = NULL;
+				LPSTR pFinalMessage = NULL;
+				pParameters = NULL;
+				parameterCount = 0;
 				if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
 					cout<<"true\n";
 					lastRecordReached = true;
 					break;
 				}
 				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-				if(eventID == 4800 || eventID == 4801 || eventID == 4624 || eventID == 4634 || eventID == 4647) 
+				if(eventID == 4800 || eventID == 4801 || eventID == 4634 || eventID == 4647) 
 				{
 					pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
 						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
+					pMess = GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
+						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
+					cout<<"pmess is "<<pMess<<endl;
+					if (pMess)
+					{
+						//parameterCount = GetParameterCount(pMess);
+						//pParameters = GetParameters(pMess);
+						status = ApplyParameterStringsToMessage(pMess, pFinalMessage);
+						cout<<"event message is "<<((pFinalMessage) ? pFinalMessage : pMess)<<endl;
+						pMess = NULL;
+
+						if (pFinalMessage)
+						{
+							pFinalMessage = NULL;
+						}
+					}
+					//cout<<"Total parameters is "<<parameterCount<<endl<<"And they are "<<endl;
+					/*for(int i = 0;i < parameterCount;i++) {
+						cout<<pParameters[i]<<endl;
+					}*/
 					message = string(pMessage);
 					messages.push_back(message);
-					cout<<message<<endl;
 					//Parse the security ID and store it in vector
 					regex_search(message, securityIDMatch, securityIDRegex);
 					for (auto x : securityIDMatch) {
@@ -229,7 +259,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					}
 					trimmedSecurityID = std::regex_replace(securityID, colon_whitespace, ":");
 					securityID = trimmedSecurityID.substr(trimmedSecurityID.find(":")+1);
-					securityIDs.push_back(securityID);
+					//securityIDs.push_back(securityID);
 					cout<<securityID<<endl;
 					//Parse the Account Name and store it in vector
 					regex_search(message, accountNameMatch, accountNameRegex);
@@ -238,7 +268,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					}
 					trimmedAccountName = std::regex_replace(accountName, colon_whitespace, ":");
 					accountName = trimmedAccountName.substr(trimmedAccountName.find(":")+1);
-					accountNames.push_back(accountName);
+					//accountNames.push_back(accountName);
 					//Parse the Account Domain and store it in vector
 					regex_search(message, accountDomainMatch, accountDomainRegex);
 					for (auto x : accountDomainMatch) {
@@ -246,7 +276,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					}
 					trimmedAccountDomain = std::regex_replace(accountDomain, colon_whitespace, ":");
 					accountDomain = trimmedAccountDomain.substr(trimmedAccountDomain.find(":")+1);
-					accountDomains.push_back(accountDomain);
+					//accountDomains.push_back(accountDomain);
 					//Parse the Logon ID and store it in vector
 					regex_search(message, logonIDMatch, logonIDRegex);
 					for (auto x : logonIDMatch) {
@@ -254,7 +284,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					}
 					trimmedLogonID = std::regex_replace(logonID, colon_whitespace, ":");
 					logonID = trimmedLogonID.substr(trimmedLogonID.find(":")+1);
-					logonIDs.push_back(logonID);
+					//logonIDs.push_back(logonID);
 					//Store other values as json
 					providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
 					int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
@@ -267,10 +297,10 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
 					rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
 					rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
-					rowObject.AddMember("securityID",StringRef(securityIDs[timestamp_index].c_str()),allocator);
+					/*rowObject.AddMember("securityID",StringRef(securityIDs[timestamp_index].c_str()),allocator);
 					rowObject.AddMember("accountName",StringRef(accountNames[timestamp_index].c_str()),allocator);
 					rowObject.AddMember("accountDomain",StringRef(accountDomains[timestamp_index].c_str()),allocator);
-					rowObject.AddMember("logonID",StringRef(logonIDs[timestamp_index].c_str()),allocator);
+					rowObject.AddMember("logonID",StringRef(logonIDs[timestamp_index].c_str()),allocator);*/
 					rowObject.AddMember("message",StringRef(messages[timestamp_index].c_str()),allocator);
 					rows.PushBack(rowObject,allocator);
 					timestamp_index++;
@@ -565,7 +595,7 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
     // Build the final message string.
     for (DWORD i = 0; i < dwParameterCount; i++)
     {
-		cout<<"test op"<<endl;
+		//cout<<"test op"<<endl;
         // Append the segment from pMessage. In the first iteration, this is "8 " and in the
         // second iteration, this is " = 2 ".
 		/*#ifdef __STDC_LIB_EXT1__
@@ -590,12 +620,12 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
 		strcpy_s(pTempFinalMessage, cchBuffer, pTempMessage);
 	#endif*/
 	
-			cout<<"test success"<<endl; 
+			//cout<<"test success"<<endl; 
 			cch = (pStartingAddresses[i] - pTempMessage);
 			strcat(pTempFinalMessage, (string(pTempMessage).substr(0,cch)).c_str());
 			pTempMessage = pEndingAddresses[i];
 			cchBuffer -= cch;
-			cout<<"Temp final is :     "<<pTempFinalMessage<<endl;
+			//cout<<"Temp final is :     "<<pTempFinalMessage<<endl;
 			// Append the parameter string. In the first iteration, this is "quarts" and in the
 			// second iteration, this is "gallons"
 			//pTempFinalMessage += cch;
@@ -603,14 +633,16 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
 			//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
 			//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
 			cchBuffer -= (cch = strlen(pParameters[i]));
-			cout<<"after param is "<<pTempFinalMessage<<endl;
+			//cout<<"after param is "<<pTempFinalMessage<<endl;
 			//pTempFinalMessage += cch;
 		//#endif
     }
-	cout<<"ptempfinal message is "<<pTempFinalMessage<<endl;
 	//#ifdef __STDC_LIB_EXT1__
 		// Append the last segment from pMessage, which is ".".
-		strcpy(pTempFinalMessage, pTempMessage);
+		strcat(pTempFinalMessage, string(pTempMessage).c_str());
+		pFinalMessage = pTempFinalMessage;
+		//cout<<"ptempfinal message is "<<pTempFinalMessage<<endl;
+		//cout<<"pFinalMessage is   "<<pFinalMessage<<endl;
 	//#endif
 
 cleanup:
@@ -634,6 +666,150 @@ cleanup:
     }
 
     return status;
+}
+
+
+int GetParameterCount(CONST LPSTR pMessage) {
+    int dwParameterCount = 0;  // Number of insertion strings found in pMessage
+    LPSTR pTempMessage = (LPSTR)pMessage;
+	cout<<"Inside get parameter "<<endl<<pTempMessage<<endl<<"over   "<<endl;
+    // Determine the number of parameter insertion strings in pMessage.
+    while (pTempMessage = strchr(pTempMessage, '%'))
+    {
+        dwParameterCount++;
+        pTempMessage++;
+		pTempMessage++;
+    }
+	return dwParameterCount;
+}
+
+
+
+LPSTR* GetParameters(CONST LPSTR pMessage)
+{
+    DWORD status = ERROR_SUCCESS;
+    DWORD dwParameterCount = 0;  // Number of insertion strings found in pMessage
+    size_t cbBuffer = 0;         // Size of the buffer in bytes
+    size_t cchParameters = 0;    // Number of characters in all the parameter strings
+    DWORD i = 0;
+    LPSTR* pStartingAddresses = NULL;  // Array of pointers to the beginning of each parameter string in pMessage
+    LPSTR* pEndingAddresses = NULL;    // Array of pointers to the end of each parameter string in pMessage
+    DWORD* pParameterIDs = NULL;        // Array of parameter identifiers found in pMessage
+    LPSTR* pParameters = NULL;         // Array of the actual parameter strings
+    LPSTR pTempMessage = (LPSTR)pMessage;
+    // Determine the number of parameter insertion strings in pMessage.
+    while (pTempMessage = strchr(pTempMessage, '%'))
+    {
+        dwParameterCount++;
+        pTempMessage++;
+		pTempMessage++;
+    }
+	
+    // Allocate an array of pointers that will contain the beginning address 
+    // of each parameter insertion string.
+    cbBuffer = sizeof(LPSTR) * dwParameterCount;
+    pStartingAddresses = (LPSTR*)malloc(cbBuffer);
+    if (NULL == pStartingAddresses)
+    {
+        wprintf(L"Failed to allocate memory for pStartingAddresses.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+
+    RtlZeroMemory(pStartingAddresses, cbBuffer);
+
+    // Allocate an array of pointers that will contain the ending address (one
+    // character past the of the identifier) of the each parameter insertion string.
+    pEndingAddresses = (LPSTR*)malloc(cbBuffer);
+    if (NULL == pEndingAddresses)
+    {
+        wprintf(L"Failed to allocate memory for pEndingAddresses.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+
+    RtlZeroMemory(pEndingAddresses, cbBuffer);
+	
+    // Allocate an array of pointers that will contain pointers to the actual
+    // parameter strings.
+    pParameters = (LPSTR*)malloc(cbBuffer);
+    if (NULL == pParameters)
+    {
+        wprintf(L"Failed to allocate memory for pEndingAddresses.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+
+    RtlZeroMemory(pParameters, cbBuffer);
+
+    // Allocate an array of DWORDs that will contain the message identifier
+    // for each parameter.
+    pParameterIDs = (DWORD*)malloc(cbBuffer);
+    if (NULL == pParameterIDs)
+    {
+        wprintf(L"Failed to allocate memory for pParameterIDs.\n");
+        status = ERROR_OUTOFMEMORY;
+        goto cleanup;
+    }
+
+    RtlZeroMemory(pParameterIDs, cbBuffer);
+
+    // Find each parameter in pMessage and get the pointer to the
+    // beginning of the insertion string, the end of the insertion string,
+    // and the message identifier of the parameter.
+    pTempMessage = (LPSTR)pMessage;
+    while (pTempMessage = strchr(pTempMessage, '%'))
+    {
+        if (isdigit(*(pTempMessage+2)))
+        {
+            pStartingAddresses[i] = pTempMessage;
+
+            pTempMessage++;
+			pTempMessage++;
+            pParameterIDs[i] = (DWORD)atoi(pTempMessage);
+            while (isdigit(*++pTempMessage))
+                ;
+
+            pEndingAddresses[i] = pTempMessage;
+
+            i++;
+        }
+		else
+			pTempMessage++;
+    }
+	
+    // For each parameter, use the message identifier to get the
+    // actual parameter string.
+    for (DWORD i = 0; i < dwParameterCount; i++)
+    {
+        //pParameters[i] = (LPSTR)GetMessageString(pParameterIDs[i], 0, NULL);
+        pParameters[i] = (LPSTR)GetMessageString(pParameterIDs[i], 0, NULL);
+        if (NULL == pParameters[i])
+        {
+            wprintf(L"GetMessageString could not find parameter string for insert %lu.\n", i);
+            status = ERROR_INVALID_PARAMETER;
+            goto cleanup;
+        }
+
+        cchParameters += strlen(pParameters[i]);
+    }
+	cleanup:
+
+    if (pStartingAddresses)
+        free(pStartingAddresses);
+
+    if (pEndingAddresses)
+        free(pEndingAddresses);
+
+    if (pParameterIDs)
+        free(pParameterIDs);
+
+    for (DWORD i = 0; i < dwParameterCount; i++)
+    {
+        if (pParameters[i])
+            LocalFree(pParameters[i]);
+    }
+	return pParameters;
 }
 
 

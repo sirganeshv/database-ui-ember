@@ -79,10 +79,10 @@ public class ElasticClient {
 					eventProvider = String.valueOf(row.get("eventProvider"));
 					eventType = String.valueOf(row.get("eventType"));
 					timestamp = String.valueOf(row.get("timestamp"));
-					securityID = String.valueOf(row.get("securityID"));
+					/*securityID = String.valueOf(row.get("securityID"));
 					accountName = String.valueOf(row.get("accountName"));
 					accountDomain = String.valueOf(row.get("accountDomain"));
-					logonID = String.valueOf(row.get("logonID"));	
+					logonID = String.valueOf(row.get("logonID"));*/	
 					message = String.valueOf(row.get("message"));
 					/*response = client.prepareIndex("logs", "log", String.valueOf(i))
 					.setSource(jsonBuilder()
@@ -101,11 +101,11 @@ public class ElasticClient {
 									.field("eventProvider", eventProvider)
 									.field("eventType", eventType)
 									.field("timestamp",timestamp)
-									.field("securityID",securityID)
+									/*.field("securityID",securityID)
 									.field("accountName",accountName)
 									.field("accountDomain",accountDomain)
+									.field("logonID",logonID)*/
 									.field("message",message)
-									.field("logonID",logonID)
 								.endObject()));
 				}
 				bulkProcessor.flush();
