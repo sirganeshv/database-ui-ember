@@ -40,7 +40,7 @@ export default Controller.extend({
             "sortProperties" : that.get('sortProperties')
           }
         }).then(function(resp){
-          //alert(resp);
+            //alert(resp);
             var table = document.getElementById("table");
             if(table != null) {
               var rowCount = table.rows.length;

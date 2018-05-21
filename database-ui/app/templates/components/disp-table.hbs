@@ -4,7 +4,7 @@ td,th {
     font-size: 25px;
     align: center;
     min-width:70px;
-    max-width: 200px;
+    max-width: 600px;
     word-wrap: break-word;
 }
 table {
@@ -15,28 +15,26 @@ table {
 }
 </style>
 {{#if isPresent}}
-<table id='table'>
-    <thead id="tablehead">
-      <tr>
-        {{#each colData as |col|}}
-        <th width = 5% {{action "sortBy" col}}>
-          {{col}}
-        </th>
-        {{/each}}
-      </tr>
-    </thead>
-    <tbody id= "tablebody">
-      {{#each rowData as |row|}}
+  <table id='table'>
+      <thead id="tablehead">
         <tr>
           {{#each colData as |col|}}
-            <td>
-             {{get row col}}
-            </td>
+          <th width = 5% {{action "sortBy" col}}>
+            {{col}}
+          </th>
           {{/each}}
         </tr>
-      {{/each}}
-    </tbody>
-</table>
-{{else}}
-No data exists
+      </thead>
+      <tbody id= "tablebody">
+        {{#each rowData as |row|}}
+          <tr>
+            {{#each colData as |col|}}
+              <td>
+               {{get row col}}
+              </td>
+            {{/each}}
+          </tr>
+        {{/each}}
+      </tbody>
+  </table>
 {{/if}}

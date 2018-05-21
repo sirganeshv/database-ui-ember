@@ -51,6 +51,7 @@ export default Ember.Component.extend({
   start : 0,
   end : 0,
   isExporting: false,
+  loading: false,
 
   paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
@@ -77,7 +78,7 @@ export default Ember.Component.extend({
           },
           success: function(resp){
             if(JSON.parse(resp).row == null) {
-              alert(JSON.parse(resp).row);
+              //alert(JSON.parse(resp).row);
               that.set('isPresent',false);
             }
             else {
@@ -107,6 +108,7 @@ export default Ember.Component.extend({
       this.set('page',1);
       this.set('startPageNumber',1);
       var that  = this;
+      this.set('loading',true);
       Ember.$.ajax({
         url: "/no_of_records",
         type: "POST",
@@ -117,13 +119,14 @@ export default Ember.Component.extend({
           "filterValue" : that.get('filterValue'),
         }
       }).then(function(resp){
-        alert(resp);
+          //alert(resp);
           n = parseInt(resp);
           var c = parseInt(that.get('paginateBy'));
           var r = Math.floor(n/c);
           if(n % c > 0)
             r += 1;
           that.set('pageCount',parseInt(r));
+          that.set('loading',false);
       }).catch(function(error){
         alert(error);
       });

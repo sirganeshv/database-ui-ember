@@ -30,29 +30,37 @@
   </div>
 {{/if}}
 {{#if isPaginated}}
-  <button id = "export-button" id="exp" class = "export" {{action "export"}}> Export</button>
-  {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name"}}
-  {{input type="text" value=filterValue name="filterValue" id="filterValue" placeholder="Enter filter Value"}}
-  <datalist id="cols">
-		{{#each cols as |col|}}
-    	<option value={{col}}>
-      </option>
-		{{/each}}
-  </datalist>
-  {{yield paginatedItems.content}}
-<ul>
-  {{#if showPrevious}}
-    <button {{action "previousClicked"}}>{{previousText}}</button>
+  {{#if loading}}
+    Loadddinggg
+  {{else}}
+    <button id = "export-button" id="exp" class = "export" {{action "export"}}> Export</button>
+    {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name"}}
+    {{input type="text" value=filterValue name="filterValue" id="filterValue" placeholder="Enter filter Value"}}
+    <datalist id="cols">
+  		{{#each cols as |col|}}
+      	<option value={{col}}>
+        </option>
+  		{{/each}}
+    </datalist>
+    {{yield paginatedItems.content}}
+    {{#if isPresent}}
+      <ul>
+      {{#if showPrevious}}
+        <button {{action "previousClicked"}}>{{previousText}}</button>
+      {{/if}}
+      {{#each pageNumbers as |pageNumber|}}
+        <button {{action "pageClicked" pageNumber}}>Page {{pageNumber}}</button>
+      {{/each}}
+      {{#if showNext}}
+        <button {{action "nextClicked"}}>{{nextText}}</button>
+      {{/if}}
+      <br/>
+      <center>
+        Showing {{page}} out of {{pageCount}}
+      </center>
+      </ul>
+    {{else}}
+      No data exists
+    {{/if}}
   {{/if}}
-  {{#each pageNumbers as |pageNumber|}}
-    <button {{action "pageClicked" pageNumber}}>Page {{pageNumber}}</button>
-  {{/each}}
-  {{#if showNext}}
-    <button {{action "nextClicked"}}>{{nextText}}</button>
-  {{/if}}
-  <br/>
-  <center>
-    Showing {{page}} out of {{pageCount}}
-  </center>
-</ul>
 {{/if}}
