@@ -28,8 +28,15 @@ function checkProgress() {
     },success : function(resp){
         progress = (resp);
         document.getElementById('_progress').style.width = Math.ceil(resp* 100) + '%';
-        if(document.getElementById('_progress').style.width === '100%')
-          document.getElementById('_progress').style.width = '0%';
+        if(document.getElementById('_progress').style.width === '100%') {
+          document.getElementById('_progress').style.background = "#ffffff";
+          document.getElementById('_progress').innerHTML = "Finishing.....";
+          document.getElementById('_progress').style.width = '100%';
+        }
+        else {
+          document.getElementById('_progress').innerHTML = "";
+          document.getElementById('_progress').style.background = "#DEDEDE";
+        }
     },error : function(error){
       alert(error);
     }
@@ -212,6 +219,52 @@ export default Ember.Component.extend({
         myTimer = setInterval(function(){checkProgress() },2);
       }
     },
+
+
+    exportEmail() {
+      var start = parseInt(prompt("Enter start eventID"));
+      while(isNaN(start)) {
+        start = parseInt(prompt("Enter start eventID as number"));
+      }
+      this.set('start',start);
+      var end = parseInt(prompt("From "+ this.get('start') +" to ?"));
+      while(isNaN(end) || start >= end) {
+        end = parseInt(prompt("From "+ this.get('start') +" to ?(number)"));
+      }
+      this.set('end',end);
+      var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
+      var j = i + parseInt(this.get('paginateBy'));
+      var receiverMailID = prompt("Enter your Email ID");
+      var isConfirmed = confirm("Do you want to export from event ID "+this.get('start')+" to "+this.get('end'));
+      if(isConfirmed) {
+        var that  = this;
+        this.set('isExporting',true);
+        progress = 0.0;
+        export_finished = false;
+        Ember.$.ajax({
+          url: "/exportEmail",
+          type: "POST",
+          data: {
+            "table_name" : that.get('table_name'),
+            "prop" : that.get('prop'),
+            'isAscending' : that.get('sortAscending'),
+            "start" : that.get('start'),
+            "stop" : that.get('end'),
+            "filterCol" : that.get('filterCol'),
+            "filterValue" : that.get('filterValue'),
+            "receiverMailID" : receiverMailID,
+          },success : function(resp){
+              alert(resp);
+              export_finished = true;
+              that.set('isExporting',false);
+          },error : function(error){
+            alert(error);
+          }
+        });
+        myTimer = setInterval(function(){checkProgress() },2);
+      }
+    },
+
 
     nextClicked() {
       if(this.get('page') + 1 <= this.get('pageCount')) {

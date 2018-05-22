@@ -105,7 +105,7 @@ public class ElasticClient {
 									.field("eventType", eventType)
 									.field("timestamp",timestamp);
 					StringBuilder keyValuePairs = new StringBuilder();
-					Pattern pattern = Pattern.compile("[a-zA-Z0-9\\s]+:\\t+\\S+");
+					Pattern pattern = Pattern.compile("[a-zA-Z0-9\\s]+:\\t+[a-zA-Z0-9 ]+");
 					Matcher matcher = pattern.matcher(message);
 					boolean found = false;    
 					while (matcher.find()) {    

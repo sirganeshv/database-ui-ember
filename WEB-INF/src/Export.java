@@ -79,6 +79,49 @@ public class Export{
 		}
 	}
 	
+	public void exportEmail(String rawJsonData,String receiverMailID) {
+	//public static void main(String args[]) {
+		pageNumber = 0;
+		totalPages = 0;
+		@SuppressWarnings("rawtypes")
+		JRAbstractExporter exporter = null;
+		i = 0;
+		System.out.println("Entering export module");
+		HashMap hm = null;
+		try {
+			System.out.println("Start ....");
+			String jrxmlFileName = "C:\\xampp\\tomcat\\webapps\\table_details\\design.jrxml";
+			String jasperFileName = "sample.jasper";
+			String pdfFileName = "D:\\eventDetails.pdf";
+
+			JasperCompileManager.compileReportToFile(jrxmlFileName, jasperFileName);
+
+			System.out.println("Report compiled");
+			JasperReport report = (JasperReport) JRLoader.loadObject(new File("Sample.jasper"));
+			ByteArrayInputStream jsonDataStream = new ByteArrayInputStream(rawJsonData.getBytes());
+			JsonDataSource ds = new JsonDataSource(jsonDataStream);
+			Map parameters = new HashMap();
+			parameters.put("title", "Jasper PDF Example");
+			
+			
+			JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, ds);
+			
+			totalPages = jasperPrint.getPages().size();
+			System.out.println("Report printed for "+jasperPrint.getPages().size()+" pages ");
+			exporter = new JRPdfExporter();
+			exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
+			createPageProgressMonitor(exporter);
+			FileOutputStream fis =  new FileOutputStream(new File(pdfFileName));
+			exporter.setParameter(JRExporterParameter.OUTPUT_STREAM,fis);
+			exporter.exportReport();
+			System.out.println("Done exporting reports to pdf");
+			fis.close();
+			new EmailUtil().sendEmail(receiverMailID,pdfFileName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void setPageNumber(int no) {
 		pageNumber = no;
 	}

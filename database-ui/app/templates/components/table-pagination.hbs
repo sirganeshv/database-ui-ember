@@ -36,6 +36,7 @@
     Loadddinggg
   {{else}}
     <button id = "export-button" id="exp" class = "export" {{action "export"}}> Export</button>
+    <button id="exportEmailButton" class = "export" {{action "exportEmail"}}> Send as Attachment</button>
     <datalist id="cols">
   		{{#each cols as |col|}}
       	<option value={{col}}>

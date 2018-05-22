@@ -49,6 +49,7 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String NO_OF_RECORDS = "/no_of_records";
 	private static final String GET_PAGE = "/get_page";
 	private static final String EXPORT_PDF = "/exportPdf";
+	private static final String EXPORT_EMAIL = "/exportEmail";
 	private static final String GET_PROGRESS = "/getProgress";
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
@@ -220,6 +221,60 @@ public class DatabaseServlet extends HttpServlet{
 						//pw.println(export.getPageNumber());
 						System.out.println("Done exporting reports to pdf");
 						pw.println("Exported successfully at D:\\");
+						}
+					else {
+						pw.println("Failed");
+					}
+				}
+				break;
+				case EXPORT_EMAIL: {
+					System.out.println("Export entered");
+					String table_name = req.getParameter("table_name");
+					String sortProperties = req.getParameter("prop");
+					Boolean isAscending = Boolean.parseBoolean(req.getParameter("isAscending"));
+					String filterCol = req.getParameter("filterCol");
+					String filterValue = req.getParameter("filterValue");
+					System.out.println("Before start");
+					int start = Integer.parseInt(req.getParameter("start"));
+					int stop = Integer.parseInt(req.getParameter("stop"));
+					int paginateBy = stop - start;
+					String receiverMailID = req.getParameter("receiverMailID");
+					System.out.println(isAscending);
+					System.out.println("getting page");
+					if(table_name != null) {
+						Statement stmt = conn.createStatement();
+						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
+						rs.next();
+						int count = rs.getInt(1);
+						int[] idList = new int[count];
+						Statement statement = conn.createStatement();
+						ResultSet resultId = statement.executeQuery("select * from id");
+						int j = 0;
+						while(resultId.next()) {
+							idList[j] = resultId.getInt(1);
+							j++;
+						}
+						ElasticClient elasticClient = new ElasticClient();
+						//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
+						JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
+						System.out.println("fetched");
+						Test test = new Test();
+						test.testMethod();
+						Export export = new Export();
+						if(events == null) {
+							pw.println("No data to send");
+							break;
+						}
+						//System.out.println("Gonna export" + events.toJSONString());
+						//pw.println(0);
+						//pw.flush();
+						//Thread.sleep(1000);
+						//pw.println(1);
+						//pw.flush();
+						export.exportEmail(events.toJSONString(),receiverMailID);
+						//pw.println(export.getPageNumber());
+						System.out.println("Mail sent");
+						pw.println("Email sent to "+receiverMailID);
 						}
 					else {
 						pw.println("Failed");
