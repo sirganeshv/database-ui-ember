@@ -1,6 +1,11 @@
 import Controller from '@ember/controller';
 var data = ' ';
 var image_url = "pdf_icon.png";
+$(window).on("keydown", function(evt){
+    if (evt.keyCode===8 && evt.target.nodeName==="BODY") {
+        evt.preventDefault();
+    }
+});
 export default Controller.extend({
   ajax: Ember.inject.service(),
   loading : false,
