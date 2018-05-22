@@ -32,7 +32,7 @@ public class EmailUtil {
 		props.setProperty("mail.host", "smtp.gmail.com");  
 		props.put("mail.smtp.auth", "true");  
 		props.put("mail.smtp.port", "465");  
-		props.put("mail.debug", "true");  
+		//props.put("mail.debug", "true");  
 		props.put("mail.smtp.socketFactory.port", "465");  
 		props.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");  
 		props.put("mail.smtp.socketFactory.fallback", "false");  
@@ -56,19 +56,16 @@ public class EmailUtil {
 			BodyPart messageBodyPart1 = new MimeBodyPart();     
             messageBodyPart1.setText("Event Logs attached");          
 
-            //4) create new MimeBodyPart object and set DataHandler object to this object        
             MimeBodyPart messageBodyPart2 = new MimeBodyPart();      
             //String filename = "eventDetails.pdf";//change accordingly     
             DataSource source = new FileDataSource(filename);    
             messageBodyPart2.setDataHandler(new DataHandler(source));    
             messageBodyPart2.setFileName("EventLogs.pdf");             
 
-            //5) create Multipart object and add MimeBodyPart objects to this object        
             Multipart multipart = new MimeMultipart();    
             multipart.addBodyPart(messageBodyPart1);     
             multipart.addBodyPart(messageBodyPart2);      
 
-            //6) set the multiplart object to the message object    
             message.setContent(multipart );
 			
 			transport.connect();  

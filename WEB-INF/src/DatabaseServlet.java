@@ -265,14 +265,7 @@ public class DatabaseServlet extends HttpServlet{
 							pw.println("No data to send");
 							break;
 						}
-						//System.out.println("Gonna export" + events.toJSONString());
-						//pw.println(0);
-						//pw.flush();
-						//Thread.sleep(1000);
-						//pw.println(1);
-						//pw.flush();
 						export.exportEmail(events.toJSONString(),receiverMailID);
-						//pw.println(export.getPageNumber());
 						System.out.println("Mail sent");
 						pw.println("Email sent to "+receiverMailID);
 						}
