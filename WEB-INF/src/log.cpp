@@ -231,7 +231,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 				{
 					pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
 						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
-					pMess = GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
+					/*pMess = GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
 						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
 					//cout<<"pmess is "<<pMess<<endl;
 					if (pMess)
@@ -239,7 +239,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						//parameterCount = GetParameterCount(pMess);
 						//pParameters = GetParameters(pMess);
 						status = ApplyParameterStringsToMessage(pMess, pFinalMessage);
-						cout<<"event message is "<<((pFinalMessage) ? pFinalMessage : pMess)<<endl;
+						//cout<<"event message is "<<((pFinalMessage) ? pFinalMessage : pMess)<<endl;
 						//pMessage = (char*)pFinalMessage;
 						//finalMessage = (char*)pFinalMessage;
 						//message = string(pFinalMessage);
@@ -249,49 +249,13 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 						{
 							pFinalMessage = NULL;
 						}
-					}
-					//cout<<"Total parameters is "<<parameterCount<<endl<<"And they are "<<endl;
-					/*for(int i = 0;i < parameterCount;i++) {
-						cout<<pParameters[i]<<endl;
 					}*/
 					message = string(pMessage);
 					messages.push_back(message);
-					//Parse the security ID and store it in vector
-					regex_search(message, securityIDMatch, securityIDRegex);
-					for (auto x : securityIDMatch) {
-						securityID = x;
-					}
-					trimmedSecurityID = std::regex_replace(securityID, colon_whitespace, ":");
-					securityID = trimmedSecurityID.substr(trimmedSecurityID.find(":")+1);
-					//securityIDs.push_back(securityID);
-					//cout<<securityID<<endl;
-					//Parse the Account Name and store it in vector
-					regex_search(message, accountNameMatch, accountNameRegex);
-					for (auto x : accountNameMatch) {
-						accountName = x;
-					}
-					trimmedAccountName = std::regex_replace(accountName, colon_whitespace, ":");
-					accountName = trimmedAccountName.substr(trimmedAccountName.find(":")+1);
-					//accountNames.push_back(accountName);
-					//Parse the Account Domain and store it in vector
-					regex_search(message, accountDomainMatch, accountDomainRegex);
-					for (auto x : accountDomainMatch) {
-						accountDomain = x;
-					}
-					trimmedAccountDomain = std::regex_replace(accountDomain, colon_whitespace, ":");
-					accountDomain = trimmedAccountDomain.substr(trimmedAccountDomain.find(":")+1);
-					//accountDomains.push_back(accountDomain);
-					//Parse the Logon ID and store it in vector
-					regex_search(message, logonIDMatch, logonIDRegex);
-					for (auto x : logonIDMatch) {
-						logonID = x;
-					}
-					trimmedLogonID = std::regex_replace(logonID, colon_whitespace, ":");
-					logonID = trimmedLogonID.substr(trimmedLogonID.find(":")+1);
-					//logonIDs.push_back(logonID);
 					//Store other values as json
 					providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
 					int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
+					//cout<<rID<<endl;
 					recordID.push_back(rID);
 					GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
 					timestamps.push_back(string(TimeStamp));
@@ -390,7 +354,7 @@ LPSTR GetMessageString(DWORD MessageId, DWORD argc, LPWSTR argv)
     DWORD dwFormatFlags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_ALLOCATE_BUFFER;
     DWORD_PTR* pArgs = NULL;
     LPSTR pString = (LPSTR)argv;
-	cout<<"argc is "<<argc<<endl;
+	//cout<<"argc is "<<argc<<endl;
 
     // The insertion strings appended to the end of the event record
     // are an array of strings; however, FormatMessage requires
@@ -409,7 +373,7 @@ LPSTR GetMessageString(DWORD MessageId, DWORD argc, LPWSTR argv)
                 pArgs[i] = (DWORD_PTR)pString;
 				//cout<<pArgs[i]<<endl;
                 pString += strlen((pString)) + 1;
-				cout<<pString<<"\t";
+				//cout<<pString<<"\t";
             }
 			//cout<<endl;
         }
@@ -601,44 +565,18 @@ DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage
     // Build the final message string.
     for (DWORD i = 0; i < dwParameterCount; i++)
     {
-		//cout<<"test op"<<endl;
-        // Append the segment from pMessage. In the first iteration, this is "8 " and in the
-        // second iteration, this is " = 2 ".
-		/*#ifdef __STDC_LIB_EXT1__
-			cout<<"test success"<<endl; 
-			strcpy_s(pTempFinalMessage, cchBuffer, pTempMessage, cch = (pStartingAddresses[i] - pTempMessage));
-			pTempMessage = pEndingAddresses[i];
-			cchBuffer -= cch;
-			cout<<"Temp final is :     "<<pTempFinalMessage<<endl;
-			// Append the parameter string. In the first iteration, this is "quarts" and in the
-			// second iteration, this is "gallons"
-			pTempFinalMessage += cch;
-			strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
-			//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
-			cchBuffer -= cch = strlen(pParameters[i]);
-
-			pTempFinalMessage += cch;
-		#endif
-    }
-	cout<<"ptempfinal message is "<<pTempFinalMessage<<endl;
-	#ifdef __STDC_LIB_EXT1__
-		// Append the last segment from pMessage, which is ".".
-		strcpy_s(pTempFinalMessage, cchBuffer, pTempMessage);
-	#endif*/
-	
-			//cout<<"test success"<<endl; 
-			cch = (pStartingAddresses[i] - pTempMessage);
-			strcat(pTempFinalMessage, (string(pTempMessage).substr(0,cch)).c_str());
-			pTempMessage = pEndingAddresses[i];
-			cchBuffer -= cch;
-			//cout<<"Temp final is :     "<<pTempFinalMessage<<endl;
-			// Append the parameter string. In the first iteration, this is "quarts" and in the
-			// second iteration, this is "gallons"
-			//pTempFinalMessage += cch;
-			strcat(pTempFinalMessage,pParameters[i]);
-			//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
-			//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
-			cchBuffer -= (cch = strlen(pParameters[i]));
+		cch = (pStartingAddresses[i] - pTempMessage);
+		strcat(pTempFinalMessage, (string(pTempMessage).substr(0,cch)).c_str());
+		pTempMessage = pEndingAddresses[i];
+		cchBuffer -= cch;
+		//cout<<"Temp final is :     "<<pTempFinalMessage<<endl;
+		// Append the parameter string. In the first iteration, this is "quarts" and in the
+		// second iteration, this is "gallons"
+		//pTempFinalMessage += cch;
+		strcat(pTempFinalMessage,pParameters[i]);
+		//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
+		//strcpy_s(pTempFinalMessage, cchBuffer, pParameters[i]);
+		cchBuffer -= (cch = strlen(pParameters[i]));
 			//cout<<"after param is "<<pTempFinalMessage<<endl;
 			//pTempFinalMessage += cch;
 		//#endif
