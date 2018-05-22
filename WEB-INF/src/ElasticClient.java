@@ -71,7 +71,7 @@ public class ElasticClient {
 					public void afterBulk(long executionId,
 										  BulkRequest request,
 										  Throwable failure) { } 
-			}).build();
+			}).setBulkActions(10000).build();
 			JSONObject firstRow = (JSONObject)rows.get(0);
 			lastInsertedRecordID = Integer.parseInt(String.valueOf(firstRow.get("recordID")));
 			System.out.println(lastInsertedRecordID);
@@ -115,12 +115,14 @@ public class ElasticClient {
 						String param[] = parameter.split(":");
 						String key = param[0].trim();
 						String value = param[1].trim();
-						keyValuePairs.append(key).append(" : ").append(value).append("\n");
+						keyValuePairs.append(key).append(" : ").append(value).append(System.getProperty("line.separator"));
 						found = true;    
 					}    
 					
 					if(found == true)
 						jsonStr.field("parsedFields",keyValuePairs);
+					else
+						jsonStr.field("parsedFields","-");
 					bulkProcessor.add(new IndexRequest("logs", "log", String.valueOf(row.get("recordID")))
 						.source(jsonStr.endObject()));
 									/*.field("securityID",securityID)
