@@ -28,20 +28,19 @@ function checkProgress() {
     },success : function(resp){
         progress = (resp);
         document.getElementById('_progress').style.width = Math.ceil(resp* 100) + '%';
-        if(document.getElementById('_progress').style.width === '100%') {
-          document.getElementById('_progress').style.background = "#ffffff";
-          document.getElementById('_progress').innerHTML = "Finishing.....";
-          document.getElementById('_progress').style.width = '100%';
-        }
-        else {
-          document.getElementById('_progress').innerHTML = "";
-          document.getElementById('_progress').style.background = "#DEDEDE";
-        }
+        /*if(document.getElementById('_progress').style.width === '100%') {
+          //document.getElementById('_progress').style.width = '0%';
+        }*/
+        //else {
+          //document.getElementById('_progress').innerHTML = "";
+        document.getElementById('_progress').style.background = "#DEDEDE";
+        //}
     },error : function(error){
       alert(error);
     }
   });
   if(export_finished === true) {
+    document.getElementById('_progress').style.width = '0%';
     clearInterval(myTimer);
   }
 };
@@ -235,6 +234,9 @@ export default Ember.Component.extend({
       var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
       var j = i + parseInt(this.get('paginateBy'));
       var receiverMailID = prompt("Enter your Email ID");
+      while(!(/[a-zA-Z0-9\.]+@[a-zA-Z0-9]+\.[[a-zA-Z0-9\.]*[a-zA-z]$/.test(receiverMailID))) {
+        receiverMailID = prompt("Enter correct mail ID (abc@xyz.com)");
+      }
       var isConfirmed = confirm("Do you want to export from event ID "+this.get('start')+" to "+this.get('end'));
       if(isConfirmed) {
         var that  = this;
