@@ -50,7 +50,7 @@ public class EmailUtil {
 
 			MimeMessage message = new MimeMessage(session);  
 			message.setSender(addressFrom);  
-			message.setSubject(subject);  
+			message.setSubject(subject);
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(receiverMailID));  
 			
 			BodyPart messageBodyPart1 = new MimeBodyPart();     

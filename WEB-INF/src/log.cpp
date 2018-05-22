@@ -22,18 +22,9 @@
 #include <locale>
 #include <cwchar>
 #include <regex>
-void print_as_wide(const char* mbstr)
-{
-    std::mbstate_t state = std::mbstate_t();
-    std::size_t len = 1 + std::mbsrtowcs(NULL, &mbstr, 0, &state);
-    std::vector<wchar_t> wstr(len);
-    std::mbsrtowcs(&wstr[0], &mbstr, wstr.size(), &state);
-    std::wcout << "Wide string: " << &wstr[0] << '\n'
-               << "The length, including '\\0': " << wstr.size() << '\n';
-}
+#include <thread>
 
 #define PROVIDER_NAME L"Security"
-//#define RESOURCE_DLL "C:\\Windows\\System32\\evr.dll"
 #define RESOURCE_DLL "C:\\Windows\\System32\\adtschema.dll"
 #define MAX_TIMESTAMP_LEN 23 + 1   
 #define MAX_RECORD_BUFFER_SIZE  0x10000  // 64K
@@ -50,8 +41,6 @@ DWORD DumpRecordsInBuffer(PBYTE pBuffer, DWORD dwBytesRead,jint *pid);
 DWORD ApplyParameterStringsToMessage(CONST LPSTR pMessage, LPSTR & pFinalMessage);
 DWORD GetEventTypeName(DWORD EventType);
 void GetTimestamp(const DWORD Time, char* DisplayString);
-LPSTR* GetParameters(CONST LPSTR pMessage);
-int GetParameterCount(CONST LPSTR pMessage);
 std::string newTimeStamp = std::string("");
 std::string extension = std::string(".dat");
 
@@ -62,8 +51,13 @@ using namespace rapidjson;
 
 int count = 0;
 jsize len = 0;
-
-
+Document obj;
+Value rows(kArrayType);
+vector <string> providers;
+vector <string> eventType;
+vector <string> timestamps;
+vector <int> recordID;
+vector <string> messages;
 
 JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj, jint lastInsertedRecordID)
 {
@@ -72,7 +66,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	//len = env->GetArrayLength(idList);
 	//jint *pId = env->GetIntArrayElements(idList, 0);
 	const char* json = "{}";
-	Document obj;
+	
 	obj.Parse(json);
 	obj.SetObject();
 	Document::AllocatorType& allocator = obj.GetAllocator();
@@ -82,13 +76,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	col.PushBack("eventType", allocator);
 	col.PushBack("timestamp",allocator);
 	col.PushBack("recordID",allocator);
-	col.PushBack("SecurityID",allocator);
-	col.PushBack("accountName",allocator);
-	col.PushBack("accountDomain",allocator);
-	col.PushBack("logonID",allocator);
 	col.PushBack("message",allocator);
-	//col.PushBack("Session ID",allocator);
-	//obj.AddMember("col",col,allocator);
+	obj.AddMember("col",col,allocator);
     HANDLE hEventLog = NULL;
     DWORD status = ERROR_SUCCESS;
     DWORD dwBytesToRead = 0;
@@ -96,19 +85,10 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
     DWORD dwMinimumBytesToRead = 0;
     PBYTE pBuffer = NULL;
     PBYTE pTemp = NULL;
-	Value rows(kArrayType);
+	
 	Document rowObject;
 	//string providers[len] = {};
-	vector <string> providers;
-	vector <string> eventType;
-	vector <string> timestamps;
-	vector <int> recordID;
-	vector <string> messages;
-	vector <string> securityIDs;
-	vector <string> accountNames;
-	vector <string> accountDomains;
-	vector <string> logonIDs;
-	vector <string> sessionIDs;
+	
 	char* TimeStamp[MAX_TIMESTAMP_LEN];
 	int timestamp_index = 0;
 	//wstring;
@@ -181,46 +161,21 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 		{
 			// Print the contents of each record in the buffer.
 			//count++;
-			DWORD status = ERROR_SUCCESS;
+			//DWORD status = ERROR_SUCCESS;
 			unsigned char* pRecord = pBuffer;
 			unsigned char* pEndOfRecords = pBuffer + dwBytesRead;
 			char TimeStamp[MAX_TIMESTAMP_LEN];
-			LPSTR pMess = NULL;
+			//LPSTR pMess = NULL;
 			char* pMessage = NULL;
-			LPSTR pFinalMessage = NULL;
+			//LPSTR pFinalMessage = NULL;
 			bool flag = false;
-			string message;
-			regex securityIDRegex("Security ID:\\s*[-a-zA-z0-9]+");
-			smatch securityIDMatch;
-			string securityID;
-			string trimmedSecurityID;
-			regex accountNameRegex("Account Name:\\s*[-a-zA-z0-9]+");
-			smatch accountNameMatch;
-			string accountName;
-			string trimmedAccountName;
-			regex accountDomainRegex("Account Domain:\\s*[-a-zA-z0-9]+");
-			smatch accountDomainMatch;
-			string accountDomain;
-			string trimmedAccountDomain;
-			regex logonIDRegex("Logon ID:\\s*[-a-zA-z0-9]+");
-			smatch logonIDMatch;
-			string logonID;
-			string trimmedLogonID;
-			regex colon_whitespace(":\\s+");
-			LPSTR* pParameters;
-			int parameterCount;
-			//cout<<"Record id is "<<((PEVENTLOGRECORD)pRecord)->RecordNumber <<" and lastInsertedRecordID is "<<lastInsertedRecordID<<"\n";
-			/*if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
-				lastRecordReached = true;
-				break;
-			}*/
+			
 			while (pRecord < pEndOfRecords) {
 				LPSTR pMess = NULL;
 				char* pMessage = NULL;
 				char* finalMessage = NULL;
 				LPSTR pFinalMessage = NULL;
-				pParameters = NULL;
-				parameterCount = 0;
+				string message;
 				if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
 					cout<<"true\n";
 					lastRecordReached = true;
@@ -236,8 +191,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					//cout<<"pmess is "<<pMess<<endl;
 					if (pMess)
 					{
-						//parameterCount = GetParameterCount(pMess);
-						//pParameters = GetParameters(pMess);
 						status = ApplyParameterStringsToMessage(pMess, pFinalMessage);
 						//cout<<"event message is "<<((pFinalMessage) ? pFinalMessage : pMess)<<endl;
 						//pMessage = (char*)pFinalMessage;
@@ -265,29 +218,10 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
 					rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
 					rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
-					/*rowObject.AddMember("securityID",StringRef(securityIDs[timestamp_index].c_str()),allocator);
-					rowObject.AddMember("accountName",StringRef(accountNames[timestamp_index].c_str()),allocator);
-					rowObject.AddMember("accountDomain",StringRef(accountDomains[timestamp_index].c_str()),allocator);
-					rowObject.AddMember("logonID",StringRef(logonIDs[timestamp_index].c_str()),allocator);*/
 					rowObject.AddMember("message",StringRef(messages[timestamp_index].c_str()),allocator);
 					rows.PushBack(rowObject,allocator);
 					timestamp_index++;
 				}
-				/*else {
-					providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
-					int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
-					recordID.push_back(rID);
-					GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
-					timestamps.push_back(string(TimeStamp));
-					rowObject.SetObject();
-					rowObject.AddMember("eventID",eventID,allocator);
-					rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
-					rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
-					rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
-					rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
-					rows.PushBack(rowObject,allocator);
-					timestamp_index++;
-				}*/
 				pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
 			}
 		}		
@@ -301,7 +235,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	providers.clear();
 	timestamps.clear();
 	recordID.clear();
-	securityIDs.clear();
 	return env->NewStringUTF(buffer.GetString());
 }
 
@@ -610,150 +543,6 @@ cleanup:
     }
 
     return status;
-}
-
-
-int GetParameterCount(CONST LPSTR pMessage) {
-    int dwParameterCount = 0;  // Number of insertion strings found in pMessage
-    LPSTR pTempMessage = (LPSTR)pMessage;
-	cout<<"Inside get parameter "<<endl<<pTempMessage<<endl<<"over   "<<endl;
-    // Determine the number of parameter insertion strings in pMessage.
-    while (pTempMessage = strchr(pTempMessage, '%'))
-    {
-        dwParameterCount++;
-        pTempMessage++;
-		pTempMessage++;
-    }
-	return dwParameterCount;
-}
-
-
-
-LPSTR* GetParameters(CONST LPSTR pMessage)
-{
-    DWORD status = ERROR_SUCCESS;
-    DWORD dwParameterCount = 0;  // Number of insertion strings found in pMessage
-    size_t cbBuffer = 0;         // Size of the buffer in bytes
-    size_t cchParameters = 0;    // Number of characters in all the parameter strings
-    DWORD i = 0;
-    LPSTR* pStartingAddresses = NULL;  // Array of pointers to the beginning of each parameter string in pMessage
-    LPSTR* pEndingAddresses = NULL;    // Array of pointers to the end of each parameter string in pMessage
-    DWORD* pParameterIDs = NULL;        // Array of parameter identifiers found in pMessage
-    LPSTR* pParameters = NULL;         // Array of the actual parameter strings
-    LPSTR pTempMessage = (LPSTR)pMessage;
-    // Determine the number of parameter insertion strings in pMessage.
-    while (pTempMessage = strchr(pTempMessage, '%'))
-    {
-        dwParameterCount++;
-        pTempMessage++;
-		pTempMessage++;
-    }
-	
-    // Allocate an array of pointers that will contain the beginning address 
-    // of each parameter insertion string.
-    cbBuffer = sizeof(LPSTR) * dwParameterCount;
-    pStartingAddresses = (LPSTR*)malloc(cbBuffer);
-    if (NULL == pStartingAddresses)
-    {
-        wprintf(L"Failed to allocate memory for pStartingAddresses.\n");
-        status = ERROR_OUTOFMEMORY;
-        goto cleanup;
-    }
-
-    RtlZeroMemory(pStartingAddresses, cbBuffer);
-
-    // Allocate an array of pointers that will contain the ending address (one
-    // character past the of the identifier) of the each parameter insertion string.
-    pEndingAddresses = (LPSTR*)malloc(cbBuffer);
-    if (NULL == pEndingAddresses)
-    {
-        wprintf(L"Failed to allocate memory for pEndingAddresses.\n");
-        status = ERROR_OUTOFMEMORY;
-        goto cleanup;
-    }
-
-    RtlZeroMemory(pEndingAddresses, cbBuffer);
-	
-    // Allocate an array of pointers that will contain pointers to the actual
-    // parameter strings.
-    pParameters = (LPSTR*)malloc(cbBuffer);
-    if (NULL == pParameters)
-    {
-        wprintf(L"Failed to allocate memory for pEndingAddresses.\n");
-        status = ERROR_OUTOFMEMORY;
-        goto cleanup;
-    }
-
-    RtlZeroMemory(pParameters, cbBuffer);
-
-    // Allocate an array of DWORDs that will contain the message identifier
-    // for each parameter.
-    pParameterIDs = (DWORD*)malloc(cbBuffer);
-    if (NULL == pParameterIDs)
-    {
-        wprintf(L"Failed to allocate memory for pParameterIDs.\n");
-        status = ERROR_OUTOFMEMORY;
-        goto cleanup;
-    }
-
-    RtlZeroMemory(pParameterIDs, cbBuffer);
-
-    // Find each parameter in pMessage and get the pointer to the
-    // beginning of the insertion string, the end of the insertion string,
-    // and the message identifier of the parameter.
-    pTempMessage = (LPSTR)pMessage;
-    while (pTempMessage = strchr(pTempMessage, '%'))
-    {
-        if (isdigit(*(pTempMessage+2)))
-        {
-            pStartingAddresses[i] = pTempMessage;
-
-            pTempMessage++;
-			pTempMessage++;
-            pParameterIDs[i] = (DWORD)atoi(pTempMessage);
-            while (isdigit(*++pTempMessage))
-                ;
-
-            pEndingAddresses[i] = pTempMessage;
-
-            i++;
-        }
-		else
-			pTempMessage++;
-    }
-	
-    // For each parameter, use the message identifier to get the
-    // actual parameter string.
-    for (DWORD i = 0; i < dwParameterCount; i++)
-    {
-        //pParameters[i] = (LPSTR)GetMessageString(pParameterIDs[i], 0, NULL);
-        pParameters[i] = (LPSTR)GetMessageString(pParameterIDs[i], 0, NULL);
-        if (NULL == pParameters[i])
-        {
-            wprintf(L"GetMessageString could not find parameter string for insert %lu.\n", i);
-            status = ERROR_INVALID_PARAMETER;
-            goto cleanup;
-        }
-
-        cchParameters += strlen(pParameters[i]);
-    }
-	cleanup:
-
-    if (pStartingAddresses)
-        free(pStartingAddresses);
-
-    if (pEndingAddresses)
-        free(pEndingAddresses);
-
-    if (pParameterIDs)
-        free(pParameterIDs);
-
-    for (DWORD i = 0; i < dwParameterCount; i++)
-    {
-        if (pParameters[i])
-            LocalFree(pParameters[i]);
-    }
-	return pParameters;
 }
 
 

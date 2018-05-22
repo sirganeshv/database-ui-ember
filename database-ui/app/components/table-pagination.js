@@ -14,13 +14,11 @@ import {
 } from '@ember/runloop';
 var  progress = 0.0;
 var n = 0;
-//var w;
 var i = 0;
 var myTimer ;
 var _progress = document.getElementById('_progress');
 var export_finished = false;
 function checkProgress() {
-  //if(flag === false)
   Ember.$.ajax({
     url: "/getProgress",
     type: "POST",
@@ -28,11 +26,6 @@ function checkProgress() {
     },success : function(resp){
         progress = (resp);
         document.getElementById('_progress').style.width = Math.ceil(resp* 100) + '%';
-        /*if(document.getElementById('_progress').style.width === '100%') {
-          //document.getElementById('_progress').style.width = '0%';
-        }*/
-        //else {
-          //document.getElementById('_progress').innerHTML = "";
         document.getElementById('_progress').style.background = "#DEDEDE";
         //}
     },error : function(error){
