@@ -6,7 +6,7 @@
    xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation = "http://jasperreports.sourceforge.net/jasperreports
    http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-   name = "jasper_report_template" language = "java" pageWidth = "500"
+   name = "jasper_report_template" language = "java" pageWidth = "1000"
    pageHeight = "500" columnWidth = "200" leftMargin = "20" rightMargin = "20"
    topMargin = "20" bottomMargin = "20">
 
@@ -30,6 +30,10 @@
       <fieldDescription><![CDATA[timestamp]]></fieldDescription>
    </field>
    
+   <field name = "parsedFields" class = "java.lang.String">
+      <fieldDescription><![CDATA[parsedFields]]></fieldDescription>
+   </field>
+   
    <title>
         <band height="30">
             <textField>
@@ -49,7 +53,7 @@
          
          <staticText>
             <reportElement mode = "Opaque" x = "0" y = "0" 
-               width = "460" height = "30" backcolor = "#70A9A9" />
+               width = "960" height = "30" backcolor = "#70A9A9" />
             
             <box>
                <bottomPen lineWidth = "1.0" lineColor = "#CCCCCC" />
@@ -98,7 +102,15 @@
             
             <text><![CDATA[timestamp]]></text>
          </staticText>
-         
+         <staticText>
+            <reportElement x = "361" y = "0" width = "500" height = "30" />
+            
+            <textElement textAlignment = "Center" verticalAlignment = "Middle">
+               <font isBold = "true" size = "10" />
+            </textElement>
+            
+            <text><![CDATA[parsedFields]]></text>
+         </staticText>
 		 
       </band>
    </columnHeader>
@@ -107,8 +119,8 @@
       <band height = "20">
 		
          <staticText>
-            <reportElement mode = "Opaque" x = "0" y = "0" 
-               width = "460" height = "20" backcolor = "#E5ECF9" />
+            <reportElement stretchType="RelativeToBandHeight" mode = "Opaque" x = "0" y = "0" 
+               width = "960" height = "20" backcolor = "#E5ECF9" />
             
             <box>
                <bottomPen lineWidth = "0.25" lineColor = "#CCCCCC" />
@@ -154,6 +166,16 @@
                
             <textFieldExpression class = "java.lang.String">
                <![CDATA[$F{timestamp}]]>
+            </textFieldExpression>
+         </textField>
+
+		 <textField isStretchWithOverflow="true">
+            <reportElement x = "501" y = "0" width = "460" height = "20" />
+            <textElement textAlignment = "Left" verticalAlignment = "Middle" >
+               <font fontName="Calibri" size="9" pdfFontName="Helvetica" pdfEncoding="Cp1250"/>
+			</textElement>
+            <textFieldExpression class = "java.lang.String">
+               <![CDATA[$F{parsedFields}]]>
             </textFieldExpression>
          </textField>
       
