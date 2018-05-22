@@ -144,7 +144,7 @@ public class DatabaseServlet extends HttpServlet{
 						}
 						ElasticClient elasticClient = new ElasticClient();
 						System.out.println("let us print no of records");
-						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
+						//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
 						pw.println(elasticClient.getTotalNumberOfRecords(idList,filterCol,filterValue,node));
 						System.out.println("printed no of records");
 						/*Database db = new Database();
@@ -256,7 +256,7 @@ public class DatabaseServlet extends HttpServlet{
 							j++;
 						}
 						ElasticClient elasticClient = new ElasticClient();
-						lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
+						//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
 						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,node));
 						System.out.println("got page");
 						/*Database db = new Database();
