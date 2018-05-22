@@ -69,10 +69,11 @@ public class Export{
 			exporter = new JRPdfExporter();
 			exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
 			createPageProgressMonitor(exporter);
-			exporter.setParameter(JRExporterParameter.OUTPUT_STREAM, new FileOutputStream(new File(pdfFileName)));
+			FileOutputStream fis =  new FileOutputStream(new File(pdfFileName));
+			exporter.setParameter(JRExporterParameter.OUTPUT_STREAM,fis);
 			exporter.exportReport();
-
 			System.out.println("Done exporting reports to pdf");
+			fis.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
