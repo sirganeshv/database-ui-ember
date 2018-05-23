@@ -22,8 +22,6 @@
 #include <locale>
 #include <cwchar>
 #include <regex>
-#include <thread>
-#include <pthread.h>
 
 #define PROVIDER_NAME L"Security"
 #define RESOURCE_DLL "C:\\Windows\\System32\\adtschema.dll"
@@ -57,7 +55,6 @@ Value rows(kArrayType);
 Document rowObject;
 //Document::AllocatorType& allocator;
 vector <string> providers;
-vector <string> eventType;
 vector <string> timestamps;
 vector <int> recordID;
 vector <string> messageVector;
@@ -187,6 +184,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	}
 	bool lastRecordReached = false;
 	// Read blocks of records until you reach the end of the log or an error occurs.
+	cout<<"let us start reading "<<endl;
 	while (ERROR_SUCCESS == status && !lastRecordReached)
 	{
 		if (!ReadEventLog(hEventLog, 
@@ -231,7 +229,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			//LPSTR pMess = NULL;
 			//LPSTR pFinalMessage = NULL;
 			bool flag = false;
-			pthread_t thread;
 			while (pRecord < pEndOfRecords) {
 				if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
 					cout<<"true\n";
@@ -260,6 +257,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	providers.clear();
 	timestamps.clear();
 	recordID.clear();
+	messageVector.clear();
 	return env->NewStringUTF(buffer.GetString());
 }
 
