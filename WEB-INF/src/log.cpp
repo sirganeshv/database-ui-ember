@@ -23,6 +23,7 @@
 #include <cwchar>
 #include <regex>
 #include <thread>
+#include <pthread.h>
 
 #define PROVIDER_NAME L"Security"
 #define RESOURCE_DLL "C:\\Windows\\System32\\adtschema.dll"
@@ -33,6 +34,7 @@ LPCSTR RESOURCE_DLL_LIST[] = {"C:\\Windows\\System32\\adtschema.dll","C:\\Window
 int current_dll_position = 0;
 
 using namespace std;
+using namespace rapidjson;
 
 
 HANDLE GetMessageResources();
@@ -47,17 +49,82 @@ std::string extension = std::string(".dat");
 const char* pEventTypeNames[] = {"Error", "Warning", "Informational", "Audit Success", "Audit Failure"};
 	
 HANDLE g_hResources = NULL;
-using namespace rapidjson;
 
 int count = 0;
 jsize len = 0;
 Document obj;
 Value rows(kArrayType);
+Document rowObject;
+//Document::AllocatorType& allocator;
 vector <string> providers;
 vector <string> eventType;
 vector <string> timestamps;
 vector <int> recordID;
-vector <string> messages;
+vector <string> messageVector;
+//char* TimeStamp[MAX_TIMESTAMP_LEN];
+int timestamp_index = 0;
+unsigned char* pRecord;
+unsigned char* pEndOfRecords;
+char TimeStamp[MAX_TIMESTAMP_LEN];
+
+void initializeJson(const char* json) {
+	obj.Parse(json);
+	obj.SetObject();
+	//allocator = obj.GetAllocator();
+}
+
+void recordLogs(int lastInsertedRecordID) {
+	LPSTR pMess = NULL;
+	char* pMessage = NULL;
+	//char* pMessage = NULL;
+	char* finalMessage = NULL;
+	LPSTR pFinalMessage = NULL;
+	string message;
+	Document::AllocatorType& allocator = obj.GetAllocator();
+	int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
+	if(eventID == 4800 || eventID == 4801 || eventID == 4624 || eventID == 4634 || eventID == 4647) 
+	{
+		pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
+			((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
+		/*pMess = GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
+			((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
+		//cout<<"pmess is "<<pMess<<endl;
+		if (pMess)
+		{
+			status = ApplyParameterStringsToMessage(pMess, pFinalMessage);
+			//cout<<"event message is "<<((pFinalMessage) ? pFinalMessage : pMess)<<endl;
+			//pMessage = (char*)pFinalMessage;
+			//finalMessage = (char*)pFinalMessage;
+			//message = string(pFinalMessage);
+			pMess = NULL;
+
+			if (pFinalMessage)
+			{
+				pFinalMessage = NULL;
+			}
+		}*/
+	
+		//Store other values as json
+		providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
+		int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
+		//cout<<rID<<endl;
+		recordID.push_back(rID);
+		message = string(pMessage);
+		messageVector.push_back(message);
+		GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
+		timestamps.push_back(string(TimeStamp));
+		rowObject.SetObject();
+		rowObject.AddMember("eventID",eventID,allocator);
+		rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
+		rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
+		rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
+		rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
+		rowObject.AddMember("message",StringRef(messageVector[timestamp_index].c_str()),allocator);
+		rows.PushBack(rowObject,allocator);
+		timestamp_index++;
+	}
+	pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
+}
 
 JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj, jint lastInsertedRecordID)
 {
@@ -66,10 +133,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	//len = env->GetArrayLength(idList);
 	//jint *pId = env->GetIntArrayElements(idList, 0);
 	const char* json = "{}";
-	
-	obj.Parse(json);
-	obj.SetObject();
 	Document::AllocatorType& allocator = obj.GetAllocator();
+	initializeJson(json);
 	Value col(kArrayType);
 	col.PushBack("eventID",allocator);
 	col.PushBack("eventProvider",allocator);
@@ -86,11 +151,8 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
     PBYTE pBuffer = NULL;
     PBYTE pTemp = NULL;
 	
-	Document rowObject;
-	//string providers[len] = {};
 	
-	char* TimeStamp[MAX_TIMESTAMP_LEN];
-	int timestamp_index = 0;
+	//string providers[len] = {};
 	//wstring;
     // The source name (provider) must exist as a subkey of Application.
 	if(NULL == hEventLog) {
@@ -162,67 +224,28 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 			// Print the contents of each record in the buffer.
 			//count++;
 			//DWORD status = ERROR_SUCCESS;
-			unsigned char* pRecord = pBuffer;
-			unsigned char* pEndOfRecords = pBuffer + dwBytesRead;
-			char TimeStamp[MAX_TIMESTAMP_LEN];
+			pRecord = pBuffer;
+			pEndOfRecords = pBuffer + dwBytesRead;
 			//LPSTR pMess = NULL;
-			char* pMessage = NULL;
 			//LPSTR pFinalMessage = NULL;
 			bool flag = false;
-			
+			pthread_t thread;
 			while (pRecord < pEndOfRecords) {
-				LPSTR pMess = NULL;
-				char* pMessage = NULL;
-				char* finalMessage = NULL;
-				LPSTR pFinalMessage = NULL;
-				string message;
 				if(((PEVENTLOGRECORD)pRecord)->RecordNumber <= lastInsertedRecordID) {
 					cout<<"true\n";
 					lastRecordReached = true;
 					break;
 				}
-				int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
-				if(eventID == 4800 || eventID == 4801 || eventID == 4624 || eventID == 4634 || eventID == 4647) 
-				{
-					pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
-						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
-					/*pMess = GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
-						((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
-					//cout<<"pmess is "<<pMess<<endl;
-					if (pMess)
-					{
-						status = ApplyParameterStringsToMessage(pMess, pFinalMessage);
-						//cout<<"event message is "<<((pFinalMessage) ? pFinalMessage : pMess)<<endl;
-						//pMessage = (char*)pFinalMessage;
-						//finalMessage = (char*)pFinalMessage;
-						//message = string(pFinalMessage);
-						pMess = NULL;
-
-						if (pFinalMessage)
-						{
-							pFinalMessage = NULL;
-						}
-					}*/
-					message = string(pMessage);
-					messages.push_back(message);
-					//Store other values as json
-					providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
-					int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
-					//cout<<rID<<endl;
-					recordID.push_back(rID);
-					GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
-					timestamps.push_back(string(TimeStamp));
-					rowObject.SetObject();
-					rowObject.AddMember("eventID",eventID,allocator);
-					rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
-					rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
-					rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
-					rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
-					rowObject.AddMember("message",StringRef(messages[timestamp_index].c_str()),allocator);
-					rows.PushBack(rowObject,allocator);
-					timestamp_index++;
+				else {
+					//int *arg = (int*)malloc((sizeof(*arg));
+					//pthread_create(&thread, NULL, recordLogs, &lastInsertedRecordID);
+					//std::thread first (recordLogs,lastInsertedRecordID);
+					//std::thread second (recordLogs,lastInsertedRecordID);
+					//first.join();
+					//recordLogs(allocator,lastInsertedRecordID);
+					//recordLogs(lastInsertedRecordID);
 				}
-				pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
+					//recordLogs(allocator,lastInsertedRecordID);
 			}
 		}		
 	}
@@ -237,7 +260,6 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	recordID.clear();
 	return env->NewStringUTF(buffer.GetString());
 }
-
 
 // Get the provider DLL 
 HANDLE GetMessageResources()
