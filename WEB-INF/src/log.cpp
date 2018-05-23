@@ -243,7 +243,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					//std::thread second (recordLogs,lastInsertedRecordID);
 					//first.join();
 					//recordLogs(allocator,lastInsertedRecordID);
-					//recordLogs(lastInsertedRecordID);
+					recordLogs(lastInsertedRecordID);
 				}
 					//recordLogs(allocator,lastInsertedRecordID);
 			}
