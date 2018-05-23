@@ -166,9 +166,11 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 		else {
 			cout<<"opened log\n";
 		}
+		cout<<"gonna get resources\n";
 		// Get the DLL that contains the string resources for the provider.
 		if (NULL == g_hResources)
 			g_hResources = GetMessageResources();
+		cout<<"Got resources\n";
 		if (NULL == g_hResources)
 		{
 			wprintf(L"GetMessageResources failed.\n");
