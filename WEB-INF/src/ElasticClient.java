@@ -54,7 +54,7 @@ public class ElasticClient {
 		String message;
 		JSONArray rows = (JSONArray)json.get("row");
 		JSONArray cols = (JSONArray)json.get("col");
-		if(rows.size() > 0) {
+		if(rows != null && rows.size() > 0) {
 			BulkProcessor bulkProcessor = BulkProcessor.builder(
 				client,  
 				new BulkProcessor.Listener() {
