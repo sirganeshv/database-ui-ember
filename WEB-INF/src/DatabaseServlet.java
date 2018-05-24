@@ -56,6 +56,8 @@ public class DatabaseServlet extends HttpServlet{
 	private static Connection conn;
 	private static int lastInsertedRecordID = 0;
 	static Node node;
+	private static Connection postgresConnection;
+	//private static Timer timer = new Timer();
 	/*public static Client connect() {
 		try {
 			return new DatabaseServlet().elasticSearchTestNode().client();
@@ -97,6 +99,45 @@ public class DatabaseServlet extends HttpServlet{
 		Database db = new Database();
 		lastInsertedRecordID = db.updateIndex(lastInsertedRecordID,node);
 		System.out.println("done");
+		try {
+			Class.forName("org.postgresql.Driver");
+			postgresConnection	= DriverManager.getConnection("jdbc:postgresql://localhost:5432/schedule","postgres", "hello");
+			Statement postgresStatement = postgresConnection.createStatement();
+			ResultSet resultSet = postgresStatement.executeQuery("select * from schedules");
+			ElasticClient elasticClient = new ElasticClient();
+			Connection conn = DatabaseHelper.getConnection();
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("select count(*) from id");
+			rs.next();
+			int count = rs.getInt(1);
+			int[] idList = new int[count];
+			Statement statement = conn.createStatement();
+			ResultSet resultId = statement.executeQuery("select * from id");
+			int j = 0;
+			while(resultId.next()) {
+				idList[j] = resultId.getInt(1);
+				j++;
+			}
+			JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,null,null,null,true,5,0,5,node)).get("row");
+			while ( resultSet.next() ) {
+				int minute = resultSet.getInt("minute");
+				int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
+				int delayMinutes = minute - currentMinute;
+				if(delayMinutes < 0)
+					delayMinutes += 60;
+				String receiverMailID = resultSet.getString("mailid");
+				Timer timer = new Timer();
+				timer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						new Export().exportEmail(events.toJSONString(),receiverMailID);
+					}
+				}, delayMinutes*60*1000, 60*60*1000);
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	public void doGet(HttpServletRequest req,HttpServletResponse res)
 	throws ServletException,IOException {
@@ -198,6 +239,7 @@ public class DatabaseServlet extends HttpServlet{
 					System.out.println("Before start");
 					int start = Integer.parseInt(req.getParameter("start"));
 					int stop = Integer.parseInt(req.getParameter("stop"));
+					int minute = Integer.parseInt(req.getParameter("minute"));
 					exportPDF(table_name,sortProperties,isAscending,filterCol,filterValue,start,stop);
 					int paginateBy = stop - start;
 					String receiverMailID = req.getParameter("receiverMailID");
@@ -216,25 +258,35 @@ public class DatabaseServlet extends HttpServlet{
 							idList[j] = resultId.getInt(1);
 							j++;
 						}
-						ElasticClient elasticClient = new ElasticClient();
 						//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
-						JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
+						//JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
 						System.out.println("fetched");
-						Test test = new Test();
-						test.testMethod();
-						Export export = new Export();
-						if(events == null) {
+						//Export export = new Export();
+						/*if(events == null) {
 							pw.println("No data to send");
 							break;
-						}
-						Timer time = new Timer(); // Instantiate Timer Object
+						}*/
+						Statement postgresStatement = null;
+						postgresStatement = postgresConnection.createStatement();
+						System.out.println("let us insert");
+						postgresStatement.executeUpdate("insert into schedules(minute,mailid) values("+minute+",'"+receiverMailID+"')");
+						System.out.println("inserted");
+						 // Instantiate Timer Object
+						 Timer timer = new Timer();
 						//ScheduleTask st = new ScheduleTask(); // Instantiate SheduledTask class
-						time.schedule(new TimerTask() {
+						int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
+						int delayMinutes = minute - currentMinute;
+						if(delayMinutes < 0)
+							delayMinutes += 60;
+						timer.schedule(new TimerTask() {
 							@Override
 							public void run() {
+								ElasticClient elasticClient = new ElasticClient();
+								JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
+								Export export = new Export();
 								export.exportEmail(events.toJSONString(),receiverMailID);
 							}
-						}, 0, 60*1000);
+						}, delayMinutes*60*1000, 60*60*1000);
 						//export.exportEmail(events.toJSONString(),receiverMailID);
 						System.out.println("Mail sent");
 						pw.println("Email sent to "+receiverMailID);

@@ -41,10 +41,10 @@ public class Export{
 		@SuppressWarnings("rawtypes")
 		JRAbstractExporter exporter = null;
 		i = 0;
-		System.out.println("Entering export module");
+		//System.out.println("Entering export module");
 		HashMap hm = null;
 		try {
-			System.out.println("Start ....");
+			//System.out.println("Start ....");
 			String jrxmlFileName = "C:\\xampp\\tomcat\\webapps\\table_details\\design.jrxml";
 			String jasperFileName = "sample.jasper";
 			String pdfFileName = "D:\\eventDetails.pdf";
@@ -65,7 +65,7 @@ public class Export{
 			JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, ds);
 			
 			totalPages = jasperPrint.getPages().size();
-			System.out.println("Report printed for "+jasperPrint.getPages().size()+" pages ");
+			//System.out.println("Report printed for "+jasperPrint.getPages().size()+" pages ");
 			exporter = new JRPdfExporter();
 			exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
 			createPageProgressMonitor(exporter);
@@ -86,10 +86,10 @@ public class Export{
 		@SuppressWarnings("rawtypes")
 		JRAbstractExporter exporter = null;
 		i = 0;
-		System.out.println("Entering export module");
+		//System.out.println("Entering export module");
 		HashMap hm = null;
 		try {
-			System.out.println("Start ....");
+			//System.out.println("Start ....");
 			String jrxmlFileName = "C:\\xampp\\tomcat\\webapps\\table_details\\design.jrxml";
 			String jasperFileName = "sample.jasper";
 			String pdfFileName = "D:\\eventDetails.pdf";
@@ -107,7 +107,7 @@ public class Export{
 			JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, ds);
 			
 			totalPages = jasperPrint.getPages().size();
-			System.out.println("Report printed for "+jasperPrint.getPages().size()+" pages ");
+			//System.out.println("Report printed for "+jasperPrint.getPages().size()+" pages ");
 			exporter = new JRPdfExporter();
 			exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
 			createPageProgressMonitor(exporter);
@@ -146,8 +146,8 @@ public class Export{
 			{
 				pageCount++;
 				setPageNumber(pageCount);
-				System.out.println(pageCount);
-				System.out.println(getProgress());
+				//System.out.println(pageCount);
+				//System.out.println(getProgress());
 			}
 		});
 	}

@@ -230,12 +230,16 @@ export default Ember.Component.extend({
       while(!(/[a-zA-Z0-9\.]+@[a-zA-Z0-9]+\.[[a-zA-Z0-9\.]*[a-zA-z]$/.test(receiverMailID))) {
         receiverMailID = prompt("Enter correct mail ID (abc@xyz.com)");
       }
+      var minute =  parseInt(prompt("Which minute you  want to get mail (mm)"));
+      while(minute > 59 || minute < 0 || isNaN(minute)) {
+        minute = parseInt(prompt("Enter minute (0 to 59)"));
+      }
       var isConfirmed = confirm("Do you want to export from event ID "+this.get('start')+" to "+this.get('end'));
       if(isConfirmed) {
         var that  = this;
-        this.set('isExporting',true);
-        progress = 0.0;
-        export_finished = false;
+        //this.set('isExporting',true);
+        //progress = 0.0;
+        //export_finished = false;
         Ember.$.ajax({
           url: "/exportEmail",
           type: "POST",
@@ -247,16 +251,17 @@ export default Ember.Component.extend({
             "stop" : that.get('end'),
             "filterCol" : that.get('filterCol'),
             "filterValue" : that.get('filterValue'),
+            "minute" : minute,
             "receiverMailID" : receiverMailID,
           },success : function(resp){
-              alert(resp);
-              export_finished = true;
-              that.set('isExporting',false);
+              //alert(resp);
+              //export_finished = true;
+              //that.set('isExporting',false);
           },error : function(error){
             alert(error);
           }
         });
-        myTimer = setInterval(function(){checkProgress() },2);
+        //myTimer = setInterval(function(){checkProgress() },2);
       }
     },
 
