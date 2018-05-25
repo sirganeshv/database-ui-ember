@@ -122,19 +122,105 @@ public class DatabaseServlet extends HttpServlet{
 			}
 			JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,null,null,null,true,0,5,node)).get("row");
 			while ( resultSet.next() ) {
-				int minute = resultSet.getInt("minute");
-				int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
-				int delayMinutes = minute - currentMinute;
-				if(delayMinutes < 0)
-					delayMinutes += 60;
-				String receiverMailID = resultSet.getString("mailid");
-				Timer timer = new Timer();
-				timer.schedule(new TimerTask() {
-					@Override
-					public void run() {
-						new Export().exportEmail(events.toJSONString(),receiverMailID);
-					}
-				}, delayMinutes*60*1000, 60*60*1000);
+				String frequency = resultSet.getString("frequency");
+				Calendar calendar = Calendar.getInstance();
+				if(frequency.equalsIgnoreCase("hourly")) {
+					int currentMinute = calendar.get(Calendar.MINUTE);
+					long time = Long.parseLong(resultSet.getString("timestamp"));
+					Calendar newCalendar = Calendar.getInstance();
+					newCalendar.setTimeInMillis(time);
+					int minute = newCalendar.get(Calendar.MINUTE);
+					int delayMinutes = minute - currentMinute;
+					if(delayMinutes < 0)
+						delayMinutes += 60;
+					System.out.println("The delayMinutes is "+delayMinutes);
+					String receiverMailID = resultSet.getString("mailid");
+					Timer timer = new Timer();
+					timer.schedule(new TimerTask() {
+						@Override
+						public void run() {
+							new Export().exportEmail(events.toJSONString(),receiverMailID);
+						}
+					}, delayMinutes*60*1000, 60*60*1000);
+				}
+				if(frequency.equalsIgnoreCase("daily")) {
+					int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
+					int currentMinute = calendar.get(Calendar.MINUTE);
+					long time = Long.parseLong(resultSet.getString("timestamp"));
+					Calendar newCalendar = Calendar.getInstance();
+					newCalendar.setTimeInMillis(time);
+					int minute = newCalendar.get(Calendar.MINUTE);
+					int hour = newCalendar.get(Calendar.HOUR_OF_DAY);
+					Calendar cal = Calendar.getInstance();
+					cal.set(Calendar.MINUTE,minute);
+					cal.set(Calendar.HOUR_OF_DAY,hour);
+					long delay = cal.getTimeInMillis() - calendar.getTimeInMillis();
+					if(delay < 0)
+						delay += 24*3600*1000;
+					System.out.println("The delay is "+delay);
+					String receiverMailID = resultSet.getString("mailid");
+					Timer timer = new Timer();
+					timer.schedule(new TimerTask() {
+						@Override
+						public void run() {
+							new Export().exportEmail(events.toJSONString(),receiverMailID);
+						}
+					}, delay, 24*60*60*1000);
+				}
+				if(frequency.equalsIgnoreCase("weekly")) {
+					int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
+					int currentMinute = calendar.get(Calendar.MINUTE);
+					int currentDay = calendar.get(Calendar.DAY_OF_WEEK);
+					long time = Long.parseLong(resultSet.getString("timestamp"));
+					Calendar newCalendar = Calendar.getInstance();
+					newCalendar.setTimeInMillis(time);
+					int minute = newCalendar.get(Calendar.MINUTE);
+					int hour = newCalendar.get(Calendar.HOUR_OF_DAY);
+					int day = newCalendar.get(Calendar.DAY_OF_WEEK);
+					Calendar cal = Calendar.getInstance();
+					cal.set(Calendar.MINUTE,minute);
+					cal.set(Calendar.HOUR_OF_DAY,hour);
+					cal.set(Calendar.DAY_OF_WEEK,day);
+					long delay = cal.getTimeInMillis() - calendar.getTimeInMillis();
+					if(delay < 0)
+						delay += 7*24*3600*1000;
+					System.out.println("The delay is "+delay);
+					String receiverMailID = resultSet.getString("mailid");
+					Timer timer = new Timer();
+					timer.schedule(new TimerTask() {
+						@Override
+						public void run() {
+							new Export().exportEmail(events.toJSONString(),receiverMailID);
+						}
+					}, delay, 7*24*60*60*1000);
+				}
+				if(frequency.equalsIgnoreCase("monthly")) {
+					int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
+					int currentMinute = calendar.get(Calendar.MINUTE);
+					int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
+					long time = Long.parseLong(resultSet.getString("timestamp"));
+					Calendar newCalendar = Calendar.getInstance();
+					newCalendar.setTimeInMillis(time);
+					int minute = newCalendar.get(Calendar.MINUTE);
+					int hour = newCalendar.get(Calendar.HOUR_OF_DAY);
+					int day = newCalendar.get(Calendar.DAY_OF_MONTH);
+					Calendar cal = Calendar.getInstance();
+					cal.set(Calendar.MINUTE,minute);
+					cal.set(Calendar.HOUR_OF_DAY,hour);
+					cal.set(Calendar.DAY_OF_MONTH,day);
+					long delay = cal.getTimeInMillis() - calendar.getTimeInMillis();
+					if(delay < 0)
+						delay += (long)cal.getActualMaximum(Calendar.DAY_OF_MONTH)*24*3600*1000;
+					System.out.println("The delay is "+delay);
+					String receiverMailID = resultSet.getString("mailid");
+					Timer timer = new Timer();
+					timer.schedule(new TimerTask() {
+						@Override
+						public void run() {
+							new Export().exportEmail(events.toJSONString(),receiverMailID);
+						}
+					}, delay, (long)30*24*60*60*1000);
+				}
 			}
 		}
 		catch(Exception e) {
@@ -244,44 +330,41 @@ public class DatabaseServlet extends HttpServlet{
 					//int minute = Integer.parseInt(req.getParameter("minute"));
 					//exportPDF("id",null,true,null,null,start,stop);
 					String receiverMailID = req.getParameter("receiverMailID");
+					String frequency = req.getParameter("frequency");
 					//System.out.println(isAscending);
 					System.out.println("getting page");
-					//if(table_name != null) {
-						Statement stmt = conn.createStatement();
-						ResultSet rs = stmt.executeQuery("select count(*) from id");
-						rs.next();
-						int count = rs.getInt(1);
-						int[] idList = new int[count];
-						Statement statement = conn.createStatement();
-						ResultSet resultId = statement.executeQuery("select * from id");
-						int j = 0;
-						while(resultId.next()) {
-							idList[j] = resultId.getInt(1);
-							j++;
-						}
-						//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
-						//JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
-						System.out.println("fetched");
-						//Export export = new Export();
-						/*if(events == null) {
-							pw.println("No data to send");
-							break;
-						}*/
-						//java.util.Date date = new java.util.Date();
-						Calendar calendar = Calendar.getInstance();
-						//calendar.setTime(date);
-						Statement postgresStatement = null;
-						postgresStatement = postgresConnection.createStatement();
-						System.out.println("let us insert");
-						postgresStatement.executeUpdate("insert into schedules(minute,mailid) values("+calendar.get(calendar.MINUTE)+",'"+receiverMailID+"')");
+					Statement stmt = conn.createStatement();
+					ResultSet rs = stmt.executeQuery("select count(*) from id");
+					rs.next();
+					int count = rs.getInt(1);
+					int[] idList = new int[count];
+					Statement statement = conn.createStatement();
+					ResultSet resultId = statement.executeQuery("select * from id");
+					int j = 0;
+					while(resultId.next()) {
+						idList[j] = resultId.getInt(1);
+						j++;
+					}
+					//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
+					//JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
+					System.out.println("fetched");
+					//Export export = new Export();
+					/*if(events == null) {
+						pw.println("No data to send");
+						break;
+					}*/
+					//java.util.Date date = new java.util.Date();
+					Calendar calendar = Calendar.getInstance();
+					long time = calendar.getTimeInMillis();
+					Statement postgresStatement = null;
+					postgresStatement = postgresConnection.createStatement();
+					System.out.println("let us insert");
+					if(frequency.equalsIgnoreCase("hourly")) {
+						//postgresStatement.executeUpdate("insert into schedules(timestamp,mailid,frequency) values('"+calendar.get(calendar.MINUTE)+"','"+receiverMailID+"','hourly')");
+						postgresStatement.executeUpdate("insert into schedules(timestamp,mailid,frequency) values('"+time+"','"+receiverMailID+"','hourly')");
+						
 						System.out.println("inserted");
-						 // Instantiate Timer Object
-						 Timer timer = new Timer();
-						//ScheduleTask st = new ScheduleTask(); // Instantiate SheduledTask class
-						/*int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
-						int delayMinutes = minute - currentMinute;
-						if(delayMinutes < 0)
-							delayMinutes += 60;*/
+						Timer timer = new Timer();
 						timer.schedule(new TimerTask() {
 							@Override
 							public void run() {
@@ -291,14 +374,66 @@ public class DatabaseServlet extends HttpServlet{
 								export.exportEmail(events.toJSONString(),receiverMailID);
 							}
 						}, 0, 60*60*1000);
-						//export.exportEmail(events.toJSONString(),receiverMailID);
 						System.out.println("Mail sent");
 						pw.println("Email sent to "+receiverMailID);
-						//ScheduleTask schedule = new ScheduleTask(table_name,sortProperties,isAscending,filterCol,filterValue,start,stop);
-					/*}
-					else {
-						pw.println("Failed");
-					}*/
+					}
+					else if(frequency.equalsIgnoreCase("daily")) {
+						//postgresStatement.executeUpdate("insert into schedules(timestamp,mailid,frequency) values('"+calendar.get(calendar.HOUR_OF_DAY)+":"+calendar.get(calendar.MINUTE)+"','"+receiverMailID+"','weekly')");
+						postgresStatement.executeUpdate("insert into schedules(timestamp,mailid,frequency) values('"+time+"','"+receiverMailID+"','daily')");
+						System.out.println("inserted");
+						Timer timer = new Timer();
+						timer.schedule(new TimerTask() {
+							@Override
+							public void run() {
+								ElasticClient elasticClient = new ElasticClient();
+								JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,null,null,null,true,start,stop,node)).get("row");
+								Export export = new Export();
+								export.exportEmail(events.toJSONString(),receiverMailID);
+							}
+						}, 0, 24*60*60*1000);
+						System.out.println("Mail sent");
+						pw.println("Email sent to "+receiverMailID);
+					}
+					else if(frequency.equalsIgnoreCase("weekly")) {
+						//postgresStatement.executeUpdate("insert into schedules(timestamp,mailid,frequency) values('"+calendar.get(calendar.DAY_OF_WEEK)+"','"+receiverMailID+"','weekly')");
+						postgresStatement.executeUpdate("insert into schedules(timestamp,mailid,frequency) values('"+time+"','"+receiverMailID+"','weekly')");
+						System.out.println("inserted");
+						Timer timer = new Timer();
+						timer.schedule(new TimerTask() {
+							@Override
+							public void run() {
+								ElasticClient elasticClient = new ElasticClient();
+								JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,null,null,null,true,start,stop,node)).get("row");
+								Export export = new Export();
+								export.exportEmail(events.toJSONString(),receiverMailID);
+							}
+						}, 0, 7*24*60*60*1000);
+						System.out.println("Mail sent");
+						pw.println("Email sent to "+receiverMailID);
+					}
+					else if(frequency.equalsIgnoreCase("monthly")) {
+						//postgresStatement.executeUpdate("insert into schedules(timestamp,mailid,frequency) values('"calendar.get(calendar.MONTH)+":"+calendar.get(calendar.HOUR_OF_DAY)+":"+calendar.get(calendar.MINUTE)+"','"+receiverMailID+"','monthly')");
+						postgresStatement.executeUpdate("insert into schedules(timestamp,mailid,frequency) values('"+time+"','"+receiverMailID+"','monthly')");
+						System.out.println("inserted");
+						Timer timer = new Timer();
+						/*Calendar nextTime = Calendar.getInstance();
+						nextTime.set(Calendar.MONTH,(Calendar.MONTH+1)%12);
+						if(Calendar.MONTH == 0)
+							calendar.set(Calendar.YEAR,Calendar.YEAR+1);*/
+						long period = (long)30*24*60*60*1000;
+						System.out.println(period);
+						timer.schedule(new TimerTask() {
+							@Override
+							public void run() {
+								ElasticClient elasticClient = new ElasticClient();
+								JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,null,null,null,true,start,stop,node)).get("row");
+								Export export = new Export();
+								export.exportEmail(events.toJSONString(),receiverMailID);
+							}
+						}, 0, period);
+						System.out.println("Mail sent");
+						pw.println("Email sent to "+receiverMailID);
+					}
 				}
 				break;
 				case GET_PROGRESS: {
@@ -370,11 +505,11 @@ public class DatabaseServlet extends HttpServlet{
 			}
         }
 		catch(SQLException e) {
-			System.out.println(e);
+			e.printStackTrace();
 
         }
         catch(Exception e){
-            System.out.println(e);
+            e.printStackTrace();
         }
 		finally {
 			pw.close();
