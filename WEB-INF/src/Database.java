@@ -44,7 +44,7 @@ public class Database {
 			JSONObject json = null;*/
 			//JsonReader jsonReader = new JsonReader(new StringReader(jsonStr));
 			System.out.println(jsonStr);
-			if(jsonStr != null)
+			if(jsonStr != null) {
 				JSONObject json = (JSONObject) parser.parse(jsonStr);
 				System.out.println("Done parsing");
 				ElasticClient elasticClient = new ElasticClient();

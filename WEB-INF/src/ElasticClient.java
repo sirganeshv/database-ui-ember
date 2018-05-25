@@ -285,7 +285,7 @@ public class ElasticClient {
 		return null;
 	}
 	
-	public JSONObject searchEvents(int[] idList,String filterCol,String filterStr,String sortCol,Boolean isAscending,int paginatedBy,int start,int stop,Node node) {
+	public JSONObject searchEvents(int[] idList,String filterCol,String filterStr,String sortCol,Boolean isAscending,int start,int stop,Node node) {
 		System.out.println("in search method");
 		NodeClient client = (NodeClient)node.client();
 		//TransportClient client = (TransportClient)node.client();

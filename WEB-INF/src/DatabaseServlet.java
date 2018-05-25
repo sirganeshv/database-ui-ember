@@ -42,6 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.io.*;
+import java.text.SimpleDateFormat;
+
 
 
 public class DatabaseServlet extends HttpServlet{
@@ -118,7 +120,7 @@ public class DatabaseServlet extends HttpServlet{
 				idList[j] = resultId.getInt(1);
 				j++;
 			}
-			JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,null,null,null,true,5,0,5,node)).get("row");
+			JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,null,null,null,true,0,5,node)).get("row");
 			while ( resultSet.next() ) {
 				int minute = resultSet.getInt("minute");
 				int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
@@ -232,22 +234,21 @@ public class DatabaseServlet extends HttpServlet{
 				case EXPORT_EMAIL: {
 					System.out.println("Export entered");
 					String table_name = req.getParameter("table_name");
-					String sortProperties = req.getParameter("prop");
-					Boolean isAscending = Boolean.parseBoolean(req.getParameter("isAscending"));
-					String filterCol = req.getParameter("filterCol");
-					String filterValue = req.getParameter("filterValue");
+					//String sortProperties = req.getParameter("prop");
+					//Boolean isAscending = Boolean.parseBoolean(req.getParameter("isAscending"));
+					//String filterCol = req.getParameter("filterCol");
+					//String filterValue = req.getParameter("filterValue");
 					System.out.println("Before start");
 					int start = Integer.parseInt(req.getParameter("start"));
 					int stop = Integer.parseInt(req.getParameter("stop"));
-					int minute = Integer.parseInt(req.getParameter("minute"));
-					exportPDF(table_name,sortProperties,isAscending,filterCol,filterValue,start,stop);
-					int paginateBy = stop - start;
+					//int minute = Integer.parseInt(req.getParameter("minute"));
+					//exportPDF("id",null,true,null,null,start,stop);
 					String receiverMailID = req.getParameter("receiverMailID");
-					System.out.println(isAscending);
+					//System.out.println(isAscending);
 					System.out.println("getting page");
-					if(table_name != null) {
+					//if(table_name != null) {
 						Statement stmt = conn.createStatement();
-						ResultSet rs = stmt.executeQuery("select count(*) from "+table_name);
+						ResultSet rs = stmt.executeQuery("select count(*) from id");
 						rs.next();
 						int count = rs.getInt(1);
 						int[] idList = new int[count];
@@ -266,35 +267,38 @@ public class DatabaseServlet extends HttpServlet{
 							pw.println("No data to send");
 							break;
 						}*/
+						//java.util.Date date = new java.util.Date();
+						Calendar calendar = Calendar.getInstance();
+						//calendar.setTime(date);
 						Statement postgresStatement = null;
 						postgresStatement = postgresConnection.createStatement();
 						System.out.println("let us insert");
-						postgresStatement.executeUpdate("insert into schedules(minute,mailid) values("+minute+",'"+receiverMailID+"')");
+						postgresStatement.executeUpdate("insert into schedules(minute,mailid) values("+calendar.get(calendar.MINUTE)+",'"+receiverMailID+"')");
 						System.out.println("inserted");
 						 // Instantiate Timer Object
 						 Timer timer = new Timer();
 						//ScheduleTask st = new ScheduleTask(); // Instantiate SheduledTask class
-						int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
+						/*int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
 						int delayMinutes = minute - currentMinute;
 						if(delayMinutes < 0)
-							delayMinutes += 60;
+							delayMinutes += 60;*/
 						timer.schedule(new TimerTask() {
 							@Override
 							public void run() {
 								ElasticClient elasticClient = new ElasticClient();
-								JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
+								JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,null,null,null,true,start,stop,node)).get("row");
 								Export export = new Export();
 								export.exportEmail(events.toJSONString(),receiverMailID);
 							}
-						}, delayMinutes*60*1000, 60*60*1000);
+						}, 0, 60*60*1000);
 						//export.exportEmail(events.toJSONString(),receiverMailID);
 						System.out.println("Mail sent");
 						pw.println("Email sent to "+receiverMailID);
 						//ScheduleTask schedule = new ScheduleTask(table_name,sortProperties,isAscending,filterCol,filterValue,start,stop);
-					}
+					/*}
 					else {
 						pw.println("Failed");
-					}
+					}*/
 				}
 				break;
 				case GET_PROGRESS: {
@@ -397,7 +401,7 @@ public class DatabaseServlet extends HttpServlet{
 				}
 				ElasticClient elasticClient = new ElasticClient();
 				//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
-				JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,stop,node)).get("row");
+				JSONArray events = (JSONArray)(elasticClient.searchEvents(idList,filterCol,filterValue,sortProperties,isAscending,start,stop,node)).get("row");
 				System.out.println("fetched");
 				Export export = new Export();
 				if(events == null) {

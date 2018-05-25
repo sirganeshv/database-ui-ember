@@ -41,6 +41,7 @@ function checkProgress() {
   return new Promise(resolve => setTimeout(resolve, ms));
 };*/
 export default Ember.Component.extend({
+  router: Ember.inject.service('-routing'),
   tagName: 'section',
   page: 1,
   paginateBy: 10,
@@ -214,7 +215,10 @@ export default Ember.Component.extend({
 
 
     exportEmail() {
-      var start = parseInt(prompt("Enter start eventID"));
+      this.sendAction('exportEmail',this.get('table_name'),this.get('sortProperties'),this.get('isAscending'),
+        this.get('filterCol'),this.get('filterValue'));
+      //this.get('router').transitionTo('export-mail');
+      /*var start = parseInt(prompt("Enter start eventID"));
       while(isNaN(start)) {
         start = parseInt(prompt("Enter start eventID as number"));
       }
@@ -262,7 +266,7 @@ export default Ember.Component.extend({
           }
         });
         //myTimer = setInterval(function(){checkProgress() },2);
-      }
+      }*/
     },
 
 
