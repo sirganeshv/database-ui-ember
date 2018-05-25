@@ -44,13 +44,15 @@ public class Database {
 			JSONObject json = null;*/
 			//JsonReader jsonReader = new JsonReader(new StringReader(jsonStr));
 			System.out.println(jsonStr);
-			JSONObject json = (JSONObject) parser.parse(jsonStr);
-			System.out.println("Done parsing");
-			ElasticClient elasticClient = new ElasticClient();
-			System.out.println(lastInsertedRecordID);
-			//lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID);
-			lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID,node);
-			System.out.println(lastInsertedRecordID);
+			if(jsonStr != null)
+				JSONObject json = (JSONObject) parser.parse(jsonStr);
+				System.out.println("Done parsing");
+				ElasticClient elasticClient = new ElasticClient();
+				System.out.println(lastInsertedRecordID);
+				//lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID);
+				lastInsertedRecordID = elasticClient.insertLog(json,lastInsertedRecordID,node);
+				System.out.println(lastInsertedRecordID);
+			}
 		}
 		catch(Exception ex) {
 			ex.printStackTrace();
