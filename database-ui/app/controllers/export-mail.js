@@ -12,7 +12,7 @@ export default Controller.extend({
               break; // and break out of for loop
           }
       }
-      alert(val);
+      //alert(val);
       var that = this;
       Ember.$.ajax({
         url: "/exportEmail",
@@ -25,13 +25,14 @@ export default Controller.extend({
           "receiverMailID" : that.get('receiverMailID'),
         },success : function(resp){
             alert(resp);
+            that.transitionToRoute("index");
             //export_finished = true;
             //that.set('isExporting',false);
         },error : function(error){
           alert(error);
         }
       });
-      alert(val);
+      //alert(val);
     }
   }
 });
