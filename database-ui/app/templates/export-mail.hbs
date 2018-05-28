@@ -1,22 +1,24 @@
-
-<div>
-<h1>Export to email</h1>
-</div>
-<div>
-{{input type="number" id="start" name="start" value=start placeholder="Enter start eventID" }}
-<br/><br/>
-{{input type="number" id="end" name="end" value=end placeholder="Enter end eventID" }}
-<br/><br/>
-{{input type="text" id="receiverMailID" name="receiverMailID" value=receiverMailID placeholder="Enter mailID to receive" pattern="[a-zA-Z0-9\.]+@[a-zA-Z0-9]+\.[[a-zA-Z0-9\.]*[a-zA-z]$" title="abc@def.xyz" }}
-<br/><br/>
-How frequent you want to receive mails
-<br/>
-<div id = "freq" name = "freq" >
-<input type="radio" id="frequency" name="gender" value="hourly" > Hourly
-<input type="radio" id="frequency" name="gender" value="daily" > Daily
-<input type="radio" id="frequency" name="gender" value="weekly" > Weekly
-<input type="radio" id="frequency" name="gender" value="monthly" > Monthly
-</div>
-</div>
-<br/>
-<button {{action "exportEmail"}}>Schedule</button>
+  {{#modal-dialog close='closeDialog' translucentOverlay='true'}}
+    <div>
+    <h1>Export to email</h1>
+    </div>
+    <div>
+    {{input type="number" id="start" name="start" value=start placeholder="Enter start eventID" }}
+    <br/><br/>
+    {{input type="number" id="end" name="end" value=end placeholder="Enter end eventID" }}
+    <br/><br/>
+    {{input type="text" id="receiverMailID" name="receiverMailID" value=receiverMailID placeholder="Enter mailID to receive" pattern="[a-zA-Z0-9\.]+@[a-zA-Z0-9]+\.[[a-zA-Z0-9\.]*[a-zA-z]$" title="abc@def.xyz" }}
+    <br/><br/>
+    How frequent you want to receive mails
+    <br/>
+    <div id = "freq" name = "freq" >
+    <input type="radio" id="frequency" name="gender" value="hourly" > Hourly
+    <input type="radio" id="frequency" name="gender" value="daily" > Daily
+    <input type="radio" id="frequency" name="gender" value="weekly" > Weekly
+    <input type="radio" id="frequency" name="gender" value="monthly" > Monthly
+    </div>
+    </div>
+    <br/>
+    <button {{action "exportEmail"}}>Schedule</button>
+    <button id = "closeDialog" id="close" class = "close" {{action "closeDialog"}}> Close</button>
+  {{/modal-dialog}}

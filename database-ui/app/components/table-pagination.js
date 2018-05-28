@@ -3,6 +3,8 @@ import DS from 'ember-data';
 //var ProgressBar = require('progressbar.js');
 //import progressbar from 'progressbar';
 //import {worker} from 'ember-multithread';
+//var ProgressBar = require('progressbar.js')
+//var line = new ProgressBar.Line('#container');
 import {
   next,
   cancel,
@@ -12,31 +14,11 @@ import {
   throttle,
   debounce
 } from '@ember/runloop';
-var  progress = 0.0;
+//var  progress = 0.0;
 var n = 0;
 var i = 0;
 var myTimer ;
-var _progress = document.getElementById('_progress');
-var export_finished = false;
-function checkProgress() {
-  Ember.$.ajax({
-    url: "/getProgress",
-    type: "POST",
-    data: {
-    },success : function(resp){
-        progress = (resp);
-        document.getElementById('_progress').style.width = Math.ceil(resp* 100) + '%';
-        document.getElementById('_progress').style.background = "#DEDEDE";
-        //}
-    },error : function(error){
-      alert(error);
-    }
-  });
-  if(export_finished === true) {
-    document.getElementById('_progress').style.width = '0%';
-    clearInterval(myTimer);
-  }
-};
+var export_finished = true;
 /*function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 };*/
@@ -51,8 +33,9 @@ export default Ember.Component.extend({
   start : 0,
   end : 0,
   isExporting: false,
+  isExportInitiated: false,
   loading: false,
-
+  progress: 0.0,
   paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
@@ -169,10 +152,18 @@ export default Ember.Component.extend({
 
   actions: {
 
+    initiateExport() {
+      this.set('isExportInitiated',true);
+    },
+
+    closeDialog() {
+      this.set('isExportInitiated',false);
+    },
+
     export() {
       //var _progress = document.getElementById('_progress');
       //_progress.style.width = '0%';
-      var start = parseInt(prompt("Enter start eventID"));
+      /*var start = parseInt(prompt("Enter start eventID"));
       while(isNaN(start)) {
         start = parseInt(prompt("Enter start eventID as number"));
       }
@@ -184,11 +175,10 @@ export default Ember.Component.extend({
       this.set('end',end);
       var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
       var j = i + parseInt(this.get('paginateBy'));
-      var isConfirmed = confirm("Do you want to export from event ID "+this.get('start')+" to "+this.get('end'));
-      if(isConfirmed) {
+      var isConfirmed = confirm("Do you want to export from event ID "+this.get('start')+" to "+this.get('end'));*/
+      //if(isConfirmed) {
         var that  = this;
         this.set('isExporting',true);
-        progress = 0.0;
         export_finished = false;
         Ember.$.ajax({
           url: "/exportPdf",
@@ -197,22 +187,40 @@ export default Ember.Component.extend({
             "table_name" : that.get('table_name'),
             "prop" : that.get('prop'),
             'isAscending' : that.get('sortAscending'),
-            "start" : that.get('start'),
-            "stop" : that.get('end'),
+            "start" : that.get('startID'),
+            "stop" : that.get('endID'),
             "filterCol" : that.get('filterCol'),
             "filterValue" : that.get('filterValue'),
           },success : function(resp){
               alert(resp);
               export_finished = true;
               that.set('isExporting',false);
+              that.set('isExportInitiated',false);
           },error : function(error){
             alert(error);
           }
         });
-        myTimer = setInterval(function(){checkProgress() },2);
-      }
-    },
+        //myTimer = setInterval(function(){checkProgress() },2);
+        myTimer = setInterval(function checkProgress() {
+          var which = that;
+          Ember.$.ajax({
+            url: "/getProgress",
+            type: "POST",
+            data: {
+            },success : function(resp) {
 
+                which.set('progress',parseFloat(resp));
+            },error : function(error){
+              alert(error);
+            }
+          });
+          if(export_finished === true) {
+            //document.getElementById('_progress').style.width = '0%';
+            clearInterval(myTimer);
+          }
+        },2);
+      //}
+    },
 
     exportEmail() {
       this.sendAction('exportEmail',this.get('table_name'),this.get('sortProperties'),this.get('isAscending'),

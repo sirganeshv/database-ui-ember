@@ -1,7 +1,12 @@
 import Controller from '@ember/controller';
 
 export default Controller.extend({
+  isExportInitiated: true,
   actions : {
+
+    closeDialog() {
+      this.transitionToRoute("index");
+    },
     //exportEmail(table_name,sortProperties,isAscending,filterCol,filterValue) {
     exportEmail() {
       var val;

@@ -24,10 +24,26 @@
 </style>
 <!--div class='container'-->
 
-{{#if isExporting}}
-  <div class='progress_outer'>
-      <div id='_progress' class='progress'></div>
-  </div>
+{{#if isExportInitiated}}
+  {{#modal-dialog close='closeDialog' translucentOverlay='true'}}
+    Enter start EventID :
+    <br/>
+    {{input type="number" id="startID" name="startID" value=startID placeholder="Enter start EventID"}}
+    <br/><br/>
+    Enter end EventID :
+    <br/>
+    {{input type="number" id="endID" name="endID" value=endID placeholder="Enter end EventID"}}
+    <br/><br/>
+    <button id = "export" id="exp" class = "export" {{action "export"}}> Export</button>
+    <button id = "closeDialog" id="close" class = "close" {{action "closeDialog"}}> Close</button>
+    <br/><br/>
+    {{#if isExporting}}
+      {{ember-progress-bar id="test" options=(hash strokeWidth=10 color='#3a3a3a' trailColor='#f4f4f4' width='100%') setProgress=progress}}
+      <!--div class='progress_outer'>
+        <div id='_progress' class='progress'></div>
+      </div-->
+    {{/if}}
+  {{/modal-dialog}}
 {{/if}}
 {{#if isPaginated}}
   {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name"}}
@@ -35,7 +51,7 @@
   {{#if loading}}
     Loadddinggg
   {{else}}
-    <button id = "export-button" id="exp" class = "export" {{action "export"}}> Export</button>
+    <button id = "export-button" id="exp" class = "export" {{action "initiateExport"}}> Export</button>
     <button id="exportEmailButton" class = "export" {{action "exportEmail"}}> Send as Attachment</button>
     <datalist id="cols">
   		{{#each cols as |col|}}

@@ -9,6 +9,7 @@ $(window).on("keydown", function(evt){
 export default Controller.extend({
   ajax: Ember.inject.service(),
   loading : false,
+  progress: 0.5,
   sortProperties: Ember.computed("model.col", function(){
     if(this.get('model.col') == null) {
       return [''];
