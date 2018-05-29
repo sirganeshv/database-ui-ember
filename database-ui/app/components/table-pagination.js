@@ -35,9 +35,6 @@ export default Ember.Component.extend({
   isExporting: false,
   isExportInitiated: false,
   loading: false,
-  deleteInitiated: false,
-  //deleted: false,
-  deletedEvents: null,
   progress: 0.0,
   paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
@@ -227,35 +224,7 @@ export default Ember.Component.extend({
 
     delete() {
       this.sendAction('deleteEvent');
-      //this.set('deleteInitiated',true);
     },
-
-    /*closeDelete() {
-      this.set('deleteInitiated',false);
-      this.set('deleted',false);
-    },
-
-    deleteEvent() {
-      var that = this;
-      Ember.$.ajax({
-        url: "/delete",
-        type: "POST",
-        data: {
-          "table_name" : that.get('table_name'),
-          "eventID" : that.get('deleteID'),
-        },success : function(resp){
-          alert((resp));
-          //that.set('deleted',true);
-          that.set('deleteInitiated',false);
-          /*that.set('deletedEvents',JSON.parse(resp));
-          that.transitionToRoute('delete');
-          that.sendAction('deleteEvent', resp);
-        },error : function(error){
-          alert(error);
-        }
-      });
-
-    },*/
 
     exportEmail() {
       this.sendAction('exportEmail',this.get('table_name'),this.get('sortProperties'),this.get('isAscending'),

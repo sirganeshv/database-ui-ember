@@ -80,59 +80,7 @@ export default Controller.extend({
       this.set('sortAscending',sortAscending);
     },
     exportEmail(table_name,sortProperties,isAscending,filterCol,filterValue) {
-      //alert(table_name);
-      //this.transitionToRoute('export-mail', { queryParams: { showDetails: true }});
       this.transitionToRoute('export-mail');
-      //this.get('router').transitionTo('export-mail');
-      /*var start = parseInt(prompt("Enter start eventID"));
-      while(isNaN(start)) {
-        start = parseInt(prompt("Enter start eventID as number"));
-      }
-      this.set('start',start);
-      var end = parseInt(prompt("From "+ this.get('start') +" to ?"));
-      while(isNaN(end) || start >= end) {
-        end = parseInt(prompt("From "+ this.get('start') +" to ?(number)"));
-      }
-      this.set('end',end);
-      var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
-      var j = i + parseInt(this.get('paginateBy'));
-      var receiverMailID = prompt("Enter your Email ID");
-      while(!(/[a-zA-Z0-9\.]+@[a-zA-Z0-9]+\.[[a-zA-Z0-9\.]*[a-zA-z]$/.test(receiverMailID))) {
-        receiverMailID = prompt("Enter correct mail ID (abc@xyz.com)");
-      }
-      var minute =  parseInt(prompt("Which minute you  want to get mail (mm)"));
-      while(minute > 59 || minute < 0 || isNaN(minute)) {
-        minute = parseInt(prompt("Enter minute (0 to 59)"));
-      }
-      var isConfirmed = confirm("Do you want to export from event ID "+this.get('start')+" to "+this.get('end'));
-      if(isConfirmed) {
-        var that  = this;
-        //this.set('isExporting',true);
-        //progress = 0.0;
-        //export_finished = false;
-        Ember.$.ajax({
-          url: "/exportEmail",
-          type: "POST",
-          data: {
-            "table_name" : that.get('table_name'),
-            "prop" : that.get('prop'),
-            'isAscending' : that.get('sortAscending'),
-            "start" : that.get('start'),
-            "stop" : that.get('end'),
-            "filterCol" : that.get('filterCol'),
-            "filterValue" : that.get('filterValue'),
-            "minute" : minute,
-            "receiverMailID" : receiverMailID,
-          },success : function(resp){
-              //alert(resp);
-              //export_finished = true;
-              //that.set('isExporting',false);
-          },error : function(error){
-            alert(error);
-          }
-        });
-        //myTimer = setInterval(function(){checkProgress() },2);
-      }*/
     },
     deleteEvent(resp) {
       this.transitionToRoute('delete');

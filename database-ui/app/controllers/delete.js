@@ -1,11 +1,6 @@
 import Controller from '@ember/controller';
 
 export default Controller.extend({
-  //queryParams: ['object'],
-  //object: null,
-  /*obj: Ember.computed("object", function() {
-    return JSON.parse(this.get('object'));
-  }),*/
   deleteInitiated: true,
   deleted: false,
   obj: null,
@@ -20,7 +15,6 @@ export default Controller.extend({
           "eventID" : that.get('deleteID'),
         },success : function(resp){
           alert((resp));
-          //that.set('deleted',true);
           that.set('deleteInitiated',false);
           that.set('deleted',true);
           that.set('obj',JSON.parse(resp));
@@ -42,7 +36,6 @@ export default Controller.extend({
           that.set('deleteInitiated',true);
           that.set('deleted',false);
           that.transitionToRoute("index");
-          //that.set('deleted',true);
         },error : function(error){
           alert(error);
         }
@@ -54,7 +47,6 @@ export default Controller.extend({
       this.transitionToRoute("index");
     },
     back() {
-      //alert(JSON.parse(this.get('object')).col);
       this.transitionToRoute("index");
     }
   }
