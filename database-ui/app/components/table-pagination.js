@@ -226,10 +226,11 @@ export default Ember.Component.extend({
     },
 
     delete() {
-      this.set('deleteInitiated',true);
+      this.sendAction('deleteEvent');
+      //this.set('deleteInitiated',true);
     },
 
-    closeDelete() {
+    /*closeDelete() {
       this.set('deleteInitiated',false);
       this.set('deleted',false);
     },
@@ -247,14 +248,14 @@ export default Ember.Component.extend({
           //that.set('deleted',true);
           that.set('deleteInitiated',false);
           /*that.set('deletedEvents',JSON.parse(resp));
-          that.transitionToRoute('delete');*/
+          that.transitionToRoute('delete');
           that.sendAction('deleteEvent', resp);
         },error : function(error){
           alert(error);
         }
       });
 
-    },
+    },*/
 
     exportEmail() {
       this.sendAction('exportEmail',this.get('table_name'),this.get('sortProperties'),this.get('isAscending'),

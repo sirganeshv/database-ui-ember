@@ -1,7 +1,24 @@
 <center>
-<b><h1>Deleted logs </h1></b>
+{{#if deleteInitiated}}
+  {{#modal-dialog close='closeDialog' translucentOverlay='true' containerClass='centered-scrolling-container' overlayClass='centered-scrolling-overlay' wrapperClass='centered-scrolling-wrapper'}}
+    Enter the event ID that you want to delete
+    <br/>
+    {{input type="number" id="deleteID" name="deleteID" value=deleteID placeholder="Enter eventID to delete"}}
+    <br/><br/>
+    <button id = "delete" id="delete" {{action "delete"}}> Delete</button>
+    <button id = "closeDelete" id="closeDelete" {{action "closeDelete"}}> Close</button>
+    {{!--#if deleted}}
+      {{!--#disp-table colData=deletedEvents.col rowData=deletedEvents.row table_name=table_name isPresent = isPresent}}
+      {{/disp-table}}
+    {{/if--}}
+  {{/modal-dialog}}
+{{/if}}
+{{#if deleted}}
+<button id = "deleteEvent" id="deleteEvent" {{action "deleteEvent"}}> Delete</button>
+<button id = "back" id="back" {{action "back"}}> Back</button>
+<b><h1>Logs to be deleted</h1></b>
 {{#disp-table colData=obj.col rowData=obj.row table_name=table_name sortBy = 'sortBy' isPresent = true}}
 {{/disp-table}}
 <br/>
-<button id = "back" id="back" {{action "back"}}> Back</button>
+{{/if}}
 </center>

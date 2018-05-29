@@ -135,7 +135,7 @@ export default Controller.extend({
       }*/
     },
     deleteEvent(resp) {
-      this.transitionToRoute('delete', {queryParams: {'object':resp}});
+      this.transitionToRoute('delete');
     }
   }
 });
