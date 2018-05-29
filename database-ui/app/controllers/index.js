@@ -134,5 +134,8 @@ export default Controller.extend({
         //myTimer = setInterval(function(){checkProgress() },2);
       }*/
     },
+    deleteEvent(resp) {
+      this.transitionToRoute('delete', {queryParams: {'object':resp}});
+    }
   }
 });

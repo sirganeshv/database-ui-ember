@@ -8,6 +8,7 @@ const Router = EmberRouter.extend({
 
 Router.map(function() {
   this.route('export-mail');
+  this.route('delete');
 });
 
 export default Router;

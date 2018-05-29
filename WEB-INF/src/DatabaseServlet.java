@@ -54,6 +54,7 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String EXPORT_PDF = "/exportPdf";
 	private static final String EXPORT_EMAIL = "/exportEmail";
 	private static final String GET_PROGRESS = "/getProgress";
+	private static final String DELETE = "/delete";
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
 	private static int lastInsertedRecordID = 0;
@@ -499,6 +500,21 @@ public class DatabaseServlet extends HttpServlet{
 					}
 					else {
 						pw.println("");
+					}
+				}
+				break;
+				case DELETE: {
+					String table_name = req.getParameter("table_name");
+					int eventID = Integer.parseInt(req.getParameter("eventID"));
+					if(table_name != null) {
+						int idList[] = {eventID};
+						Statement stmt = conn.createStatement();
+						stmt.executeUpdate("delete from "+table_name+" where acc_no = "+eventID);
+						ElasticClient elasticClient = new ElasticClient();
+						pw.println(elasticClient.searchEvents(idList,null,null,null,true,eventID,eventID,node));
+						elasticClient.delete(eventID,node);
+						//pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,node));
+						//System.out.println("got page");
 					}
 				}
 				break;

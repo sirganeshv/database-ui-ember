@@ -21,6 +21,38 @@
       height: 20px;
       margin-right: auto;
   }
+  .centered-scrolling-wrapper {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: scroll;
+  }
+
+  .centered-scrolling-overlay {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+    padding: 1em;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  /* basic modal style (an example, this is not necessary for the centering) */
+  /*.centered-scrolling-container {
+    position: relative;
+    background-color: white;
+    min-width: 30em;
+    max-width: 650px;
+    min-height: 20em;
+    padding: 3em;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    box-sizing: border-box;
+    box-shadow: 0px 4px 25px 4px rgba(0,0,0,0.30);
+  }*/
 </style>
 <!--div class='container'-->
 
@@ -52,7 +84,22 @@
     Loadddinggg
   {{else}}
     <button id = "export-button" id="exp" class = "export" {{action "initiateExport"}}> Export</button>
+    <button id = "delete-button" id="delete" class = "export" {{action "delete"}}> Delete</button>
     <button id="exportEmailButton" class = "export" {{action "exportEmail"}}> Send as Attachment</button>
+    {{#if deleteInitiated}}
+      {{#modal-dialog close='closeDialog' translucentOverlay='true' containerClass='centered-scrolling-container' overlayClass='centered-scrolling-overlay' wrapperClass='centered-scrolling-wrapper'}}
+        Enter the event ID that you want to delete
+        <br/>
+        {{input type="number" id="deleteID" name="deleteID" value=deleteID placeholder="Enter eventID to delete"}}
+        <br/><br/>
+        <button id = "closeDelete" id="closeDelete" {{action "closeDelete"}}> Close</button>
+        <button id = "deleteEvent" id="deleteEvent" {{action "deleteEvent"}}> Delete</button>
+        {{!--#if deleted}}
+          {{!--#disp-table colData=deletedEvents.col rowData=deletedEvents.row table_name=table_name isPresent = isPresent}}
+          {{/disp-table}}
+        {{/if--}}
+      {{/modal-dialog}}
+    {{/if}}
     <datalist id="cols">
   		{{#each cols as |col|}}
       	<option value={{col}}>

@@ -28,6 +28,8 @@ import java.net.InetAddress;
 import java.io.*;
 import java.util.regex.Pattern;  
 import java.util.regex.Matcher; 
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryAction;
 
 /*import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -357,6 +359,16 @@ public class ElasticClient {
 		}
 		return null;
 	}
+	
+	public void delete(int eventID,Node node) {
+		NodeClient client = (NodeClient)node.client();
+		BulkByScrollResponse response = DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
+		.filter(QueryBuilders.matchQuery("eventID", String.valueOf(eventID))) 
+		.source("logs")                                  
+		.get();                                             
+		long deleted = response.getDeleted();
+	}
+	
 	
 	/*public static void main(String[] args) {
 		ElasticClient elasticClient = new ElasticClient();
