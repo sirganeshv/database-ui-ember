@@ -6,7 +6,7 @@
     {{input type="number" id="deleteID" name="deleteID" value=deleteID placeholder="Enter eventID to delete"}}
     <br/><br/>
     <button id = "delete" id="delete" {{action "delete"}}> Delete</button>
-    <button id = "closeDelete" id="closeDelete" {{action "closeDelete"}}> Close</button>
+    <button id = "closeDelete" id="closeDelete" {{action "back"}}> Close</button>
   {{/modal-dialog}}
 {{/if}}
 {{#if deleted}}

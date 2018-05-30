@@ -26,7 +26,7 @@ export default Controller.extend({
     deleteEvent() {
       var that = this;
       Ember.$.ajax({
-        url: "/fetchEvent",
+        url: "/delete",
         type: "POST",
         data: {
           "table_name" : 'id',
@@ -41,12 +41,9 @@ export default Controller.extend({
         }
       });
     },
-    closeDelete() {
-      this.set('deleteInitiated',false);
-      this.set('deleted',false);
-      this.transitionToRoute("index");
-    },
     back() {
+      this.set('deleteInitiated',true);
+      this.set('deleted',false);
       this.transitionToRoute("index");
     }
   }

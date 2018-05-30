@@ -505,18 +505,13 @@ public class DatabaseServlet extends HttpServlet{
 				}
 				break;
 				case FETCH_EVENT: {
-					String table_name = req.getParameter("table_name");
 					int eventID = Integer.parseInt(req.getParameter("eventID"));
-					if(table_name != null) {
-						int idList[] = {eventID};
-						Statement stmt = conn.createStatement();
-						stmt.executeUpdate("delete from "+table_name+" where acc_no = "+eventID);
-						ElasticClient elasticClient = new ElasticClient();
-						pw.println(elasticClient.searchEvents(idList,null,null,null,true,eventID,eventID,node));
+					int idList[] = {eventID};
+					ElasticClient elasticClient = new ElasticClient();
+					pw.println(elasticClient.searchEvents(idList,null,null,null,true,eventID,eventID,node));
 						//elasticClient.delete(eventID,node);
 						//pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,node));
 						//System.out.println("got page");
-					}
 				}
 				break;
 				case DELETE: {
