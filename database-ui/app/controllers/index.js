@@ -10,6 +10,7 @@ export default Controller.extend({
   ajax: Ember.inject.service(),
   loading : false,
   progress: 0.5,
+  archived: false,
   sortProperties: Ember.computed("model.col", function(){
     if(this.get('model.col') == null) {
       return [''];
@@ -84,6 +85,22 @@ export default Controller.extend({
     },
     deleteEvent(resp) {
       this.transitionToRoute('delete');
-    }
+    },
+    restore() {
+      var that = this;
+      Ember.$.ajax({
+        url: "/restore",
+        type: "POST",
+        data: {
+        },success : function(resp) {
+          alert('data successfully Restored');
+          that.set('archived',false);
+          that.set('isPresent',true);
+          that.refresh();
+        },error : function(error){
+          alert(error);
+        }
+      });
+    },
   }
 });

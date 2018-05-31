@@ -36,11 +36,12 @@ export default Ember.Component.extend({
   isExportInitiated: false,
   loading: false,
   progress: 0.0,
-  paginatedItems: Ember.computed('items', 'page','sortProperties','filterValue', function(){
+  paginatedItems: Ember.computed('items','archived', 'page','sortProperties','filterValue', function(){
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
     var j = i + parseInt(this.get('paginateBy'));
-    if('items' == null)
+    alert(this.get('archived'));
+    if('items' == null || this.get('archived') == true)
       return false;
     else {
       var that  = this;
@@ -67,6 +68,7 @@ export default Ember.Component.extend({
             else {
               resolve(JSON.parse(resp).row);
               that.set('isPresent',true);
+              that.set('archived',false);
             }
           },
           error: function(reason) {
@@ -78,16 +80,18 @@ export default Ember.Component.extend({
     return DS.PromiseObject.create({ promise: result });
   }),
 
-  isPaginated:Ember.computed('items','paginatedItems','pageCount', function(){
+  isPaginated:Ember.computed('items','archived','paginatedItems','pageCount', function(){
     if((this.get('page') > this.get('numberOfPages'))) {
       this.set('page',1);
     }
-    return ((this.get('items')!==null) && (this.get('items')!==undefined) && (this.get('items')!==""));
+    return ((this.get('items')!==null) && (this.get('items')!==undefined) && (this.get('items')!=="") && this.get('archived') == false);
   }),
 
-  numberOfPages: Ember.computed('items','paginateBy','filterValue',function(){
+  numberOfPages: Ember.computed('items','archived','paginateBy','filterValue',function(){
     table_name = this.get('table_name');
-    if(table_name !== null && table_name !== undefined && table_name !== "" && this.get('items') !== null) {
+    if(this.get('archived') == true)
+      that.set('pageCount',0)
+    if(table_name !== null && table_name !== undefined && table_name !== "" && this.get('items') !== null && this.get('archived') == false) {
       this.set('page',1);
       this.set('startPageNumber',1);
       var that  = this;
@@ -112,6 +116,7 @@ export default Ember.Component.extend({
           that.set('loading',false);
       }).catch(function(error){
         alert(error);
+        that.set('loading',false);
       });
     }
   }),
@@ -280,6 +285,25 @@ export default Ember.Component.extend({
         //myTimer = setInterval(function(){checkProgress() },2);
       }*/
     },
+
+    snap() {
+      var that = this;
+      Ember.$.ajax({
+        url: "/archive",
+        type: "POST",
+        data: {
+        },success : function(resp) {
+          alert('data successfully archived');
+          that.set('archived',true);
+          alert(that.get('archived'));
+          that.set('isPresent',false);
+          //that.refresh();
+        },error : function(error){
+          alert(error);
+        }
+      });
+    },
+
 
 
     nextClicked() {

@@ -47,6 +47,7 @@ import java.text.SimpleDateFormat;
 
 
 public class DatabaseServlet extends HttpServlet{
+	
 	private static final String GET_TABLES = "/get_tables";
 	private static final String GET_TABLE = "/get_table";
 	private static final String NO_OF_RECORDS = "/no_of_records";
@@ -56,6 +57,8 @@ public class DatabaseServlet extends HttpServlet{
 	private static final String GET_PROGRESS = "/getProgress";
 	private static final String FETCH_EVENT = "/fetchEvent";
 	private static final String DELETE = "/delete";
+	private static final String ARCHIVE = "/archive";
+	private static final String RESTORE = "/restore";
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
 	private static int lastInsertedRecordID = 0;
@@ -469,7 +472,12 @@ public class DatabaseServlet extends HttpServlet{
 						}
 						ElasticClient elasticClient = new ElasticClient();
 						//lastInsertedRecordID = new Database().updateIndex(lastInsertedRecordID,node);
-						pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,node));
+						JSONObject jsonObject = elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,node);
+						if(jsonObject == null) {
+							new Database().updateIndex(lastInsertedRecordID,node);
+							jsonObject = elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,node);
+						}
+						pw.println(jsonObject);
 						System.out.println("got page");
 						/*Database db = new Database();
 
@@ -527,6 +535,27 @@ public class DatabaseServlet extends HttpServlet{
 						//pw.println(elasticClient.search(idList,filterCol,filterValue,sortProperties,isAscending,paginateBy,start,node));
 						//System.out.println("got page");
 					}
+				}
+				break;
+				case ARCHIVE: {
+					ElasticClient elasticClient = new ElasticClient();
+					elasticClient.archive(node);
+					lastInsertedRecordID = 0;
+					/*CreateSnapshotResponse createSnapshotResponse = null;
+					try {
+						createSnapshotResponse = client.admin().cluster()
+							.prepareCreateSnapshot(repositoryName, snapshotName)
+							.setWaitForCompletion(true)
+							.setIndices(indexName).get();
+						logger.info("Snapshot was created.");
+					} catch (Exception ex){
+						logger.error("Exception in createSnapshot method: " + ex.toString());
+					} */
+				}
+				break;
+				case RESTORE: {
+					ElasticClient elasticClient = new ElasticClient();
+					elasticClient.restore(node);
 				}
 				break;
 			}

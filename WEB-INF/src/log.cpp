@@ -51,7 +51,7 @@ HANDLE g_hResources = NULL;
 int count = 0;
 jsize len = 0;
 Document obj;
-Value rows(kArrayType);
+//Value rows(kArrayType);
 Document rowObject;
 //Document::AllocatorType& allocator;
 vector <string> providers;
@@ -70,7 +70,7 @@ void initializeJson(const char* json) {
 	//allocator = obj.GetAllocator();
 }
 
-void recordLogs(int lastInsertedRecordID) {
+void recordLogs(int lastInsertedRecordID,Value rows) {
 	LPSTR pMess = NULL;
 	char* pMessage = NULL;
 	//char* pMessage = NULL;
@@ -102,6 +102,8 @@ void recordLogs(int lastInsertedRecordID) {
 		}*/
 	
 		//Store other values as json
+		cout<<eventID<<endl;
+		cout<<string((const char*)(pRecord + sizeof(EVENTLOGRECORD))).c_str()<<endl;
 		providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
 		int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
 		//cout<<rID<<endl;
@@ -111,12 +113,20 @@ void recordLogs(int lastInsertedRecordID) {
 		GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
 		timestamps.push_back(string(TimeStamp));
 		rowObject.SetObject();
+		cout<<"All objects set"<<endl;
 		rowObject.AddMember("eventID",eventID,allocator);
+		cout<<providers[timestamp_index].c_str()<<endl;
+		cout<<"event ID read"<<endl;
 		rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
+		cout<<"event provider read"<<endl;
 		rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
+		cout<<"event type read"<<endl;
 		rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
+		cout<<"timestamp read"<<endl;
 		rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
+		cout<<"record ID read"<<endl;
 		rowObject.AddMember("message",StringRef(messageVector[timestamp_index].c_str()),allocator);
+		cout<<"Gonna push"<<endl;
 		rows.PushBack(rowObject,allocator);
 		timestamp_index++;
 	}
@@ -125,6 +135,7 @@ void recordLogs(int lastInsertedRecordID) {
 
 JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj, jint lastInsertedRecordID)
 {
+	timestamp_index = 0;
 	cout<<"enterd";
 	std::setlocale(LC_ALL, "en_US.utf8");
 	//len = env->GetArrayLength(idList);
@@ -133,6 +144,7 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 	Document::AllocatorType& allocator = obj.GetAllocator();
 	initializeJson(json);
 	Value col(kArrayType);
+	Value rows(kArrayType);
 	col.PushBack("eventID",allocator);
 	col.PushBack("eventProvider",allocator);
 	col.PushBack("eventType", allocator);
@@ -236,29 +248,84 @@ JNIEXPORT jstring JNICALL Java_Database_getTableAsJson(JNIEnv *env, jobject jobj
 					break;
 				}
 				else {
+					LPSTR pMess = NULL;
+					char* pMessage = NULL;
+					//char* pMessage = NULL;
+					char* finalMessage = NULL;
+					LPSTR pFinalMessage = NULL;
+					string message;
+					Document::AllocatorType& allocator = obj.GetAllocator();
+					int eventID = (((PEVENTLOGRECORD)pRecord)->EventID & 0xFFFF);
+					if(eventID == 4800 || eventID == 4801 || eventID == 4624 || eventID == 4634 || eventID == 4647) 
+					{
+						pMessage = (char*)GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
+							((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
+						/*pMess = GetMessageString(((PEVENTLOGRECORD)pRecord)->EventID, 
+							((PEVENTLOGRECORD)pRecord)->NumStrings, (LPWSTR)(pRecord + ((PEVENTLOGRECORD)pRecord)->StringOffset));
+						//cout<<"pmess is "<<pMess<<endl;
+						if (pMess)
+						{
+							status = ApplyParameterStringsToMessage(pMess, pFinalMessage);
+							//cout<<"event message is "<<((pFinalMessage) ? pFinalMessage : pMess)<<endl;
+							//pMessage = (char*)pFinalMessage;
+							//finalMessage = (char*)pFinalMessage;
+							//message = string(pFinalMessage);
+							pMess = NULL;
+
+							if (pFinalMessage)
+							{
+								pFinalMessage = NULL;
+							}
+						}*/
+					
+						//Store other values as json
+						providers.push_back(string((const char*)(pRecord + sizeof(EVENTLOGRECORD))));
+						int rID = ((PEVENTLOGRECORD)pRecord)->RecordNumber;
+						//cout<<rID<<endl;
+						recordID.push_back(rID);
+						message = string(pMessage);
+						messageVector.push_back(message);
+						GetTimestamp(((PEVENTLOGRECORD)pRecord)->TimeGenerated, TimeStamp);
+						timestamps.push_back(string(TimeStamp));
+						rowObject.SetObject();
+						rowObject.AddMember("eventID",eventID,allocator);
+						rowObject.AddMember("eventProvider",StringRef(providers[timestamp_index].c_str()),allocator);
+						rowObject.AddMember("eventType",StringRef(pEventTypeNames[GetEventTypeName(((PEVENTLOGRECORD)pRecord)->EventType)]),allocator);
+						rowObject.AddMember("timestamp",StringRef(timestamps[timestamp_index].c_str()),allocator);
+						rowObject.AddMember("recordID",recordID[timestamp_index],allocator);
+						rowObject.AddMember("message",StringRef(messageVector[timestamp_index].c_str()),allocator);
+						rows.PushBack(rowObject,allocator);
+						timestamp_index++;
+					}
+					pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
 					//int *arg = (int*)malloc((sizeof(*arg));
 					//pthread_create(&thread, NULL, recordLogs, &lastInsertedRecordID);
 					//std::thread first (recordLogs,lastInsertedRecordID);
 					//std::thread second (recordLogs,lastInsertedRecordID);
 					//first.join();
 					//recordLogs(allocator,lastInsertedRecordID);
-					recordLogs(lastInsertedRecordID);
+					//recordLogs(lastInsertedRecordID,rows);
+					
 				}
 					//recordLogs(allocator,lastInsertedRecordID);
 			}
 		}		
 	}
-	obj.AddMember("row",rows,allocator);
-	StringBuffer buffer;
-	Writer<StringBuffer> writer(buffer);
-	obj.Accept(writer);
-	//cout<<"The final buffer is "<<endl<<buffer.GetString()<<endl<<endl;
-	CloseEventLog(hEventLog);
-	providers.clear();
-	timestamps.clear();
-	recordID.clear();
-	messageVector.clear();
-	return env->NewStringUTF(buffer.GetString());
+	if(rows != NULL) {
+		cout<<"Hello moto";
+		obj.AddMember("row",rows,allocator);
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
+		obj.Accept(writer);
+		//cout<<"The final buffer is "<<endl<<buffer.GetString()<<endl<<endl;
+		CloseEventLog(hEventLog);
+		providers.clear();
+		timestamps.clear();
+		recordID.clear();
+		messageVector.clear();
+		return env->NewStringUTF(buffer.GetString());
+	}
+	return NULL;
 }
 
 // Get the provider DLL 

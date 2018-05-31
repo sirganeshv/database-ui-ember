@@ -17,7 +17,7 @@ td {
 	width: 100px;
 	margin: 0; padding: 0;
 }
-.export {
+.right_buttons {
 	float: right;
 	background-image: image(url('pdf_icon.png'));
 }
@@ -42,10 +42,13 @@ td {
 	  {{input list="tables" type="text" id="table_name" name="table_name" value=table_name placeholder="Enter table_name" }}
 		<button {{action "display"}}>Go</button>
 	</div>
+  {{#if archived}}
+    <button id =  "restore" class = "right_buttons" {{action "restore"}}> Restore</button>
+  {{/if}}
 	<center><br/><br/>
 		{{message}}
 		<div id="tablediv">
-			{{#table-pagination paginateBy=5 sortProperties = sortProperties sortAscending = sortAscending prop = prop table_name = table_name cols=model.col isPresent = isPresent exportEmail = 'exportEmail' deleteEvent = 'deleteEvent' items=model.row as |rows|}}
+			{{#table-pagination paginateBy=5 sortProperties = sortProperties sortAscending = sortAscending archived = archived prop = prop table_name = table_name cols=model.col isPresent = isPresent exportEmail = 'exportEmail' deleteEvent = 'deleteEvent' items=model.row as |rows|}}
 				{{#disp-table colData=model.col rowData=rows table_name=table_name sortBy = 'sortBy' isPresent = isPresent}}
 				{{/disp-table}}
 			{{/table-pagination}}

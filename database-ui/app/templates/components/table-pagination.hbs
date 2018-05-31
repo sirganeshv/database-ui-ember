@@ -78,21 +78,30 @@
   {{/modal-dialog}}
 {{/if}}
 {{#if isPaginated}}
-  {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name"}}
-  {{input type="text" value=filterValue name="filterValue" id="filterValue" placeholder="Enter filter Value"}}
   {{#if loading}}
     Loadddinggg
   {{else}}
-    <button id = "export-button" id="exp" class = "export" {{action "initiateExport"}}> Export</button>
-    <button id = "delete-button" id="delete" class = "export" {{action "delete"}}> Delete</button>
-    <button id="exportEmailButton" class = "export" {{action "exportEmail"}}> Send as Attachment</button>
-    <datalist id="cols">
-  		{{#each cols as |col|}}
-      	<option value={{col}}>
-        </option>
-  		{{/each}}
-    </datalist>
-    {{yield paginatedItems.content}}
+    {{#if archived}}
+      Please restore
+    {{else}}
+      <button id =  "snap" class = "right_buttons" {{action "snap"}}> Archive</button>
+      <button id = "export-button" name = "exp" class = "right_buttons" {{action "initiateExport"}}> Export</button>
+      <button id = "delete-button" name ="delete" class = "right_buttons" {{action "delete"}}> Delete</button>
+      <button id = "exportEmailButton" class = "right_buttons" {{action "exportEmail"}}> Send as Attachment</button>
+      <br/>
+      <center>
+      {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name"}}
+      {{input type="text" value=filterValue name="filterValue" id="filterValue" placeholder="Enter filter Value"}}
+      </center>
+      <br/>
+      <datalist id="cols">
+    		{{#each cols as |col|}}
+        	<option value={{col}}>
+          </option>
+    		{{/each}}
+      </datalist>
+      {{yield paginatedItems.content}}
+    {{/if}}
     {{#if isPresent}}
       <ul>
       {{#if showPrevious}}

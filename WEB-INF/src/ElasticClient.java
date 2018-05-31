@@ -1,10 +1,13 @@
 //import org.elasticsearch.client.transport.TransportClient;
 //import org.elasticsearch.common.transport.TransportAddress;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.client.Client;
 //import org.elasticsearch.client.transport.*;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 //import org.elasticsearch.action.get.GetResponse;
 //import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -30,6 +33,22 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher; 
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
+import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
+import org.elasticsearch.action.admin.cluster.snapshots.delete.DeleteSnapshotResponse;
+import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotRequest;
+import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotResponse;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.cluster.metadata.RepositoryMetaData;
+import org.elasticsearch.action.admin.indices.close.CloseIndexRequest;
+import org.elasticsearch.action.admin.indices.open.OpenIndexRequest;
+import org.elasticsearch.action.admin.cluster.repositories.delete.DeleteRepositoryRequest;
+import org.elasticsearch.snapshots.SnapshotInfo;
+import org.elasticsearch.action.admin.cluster.snapshots.delete.DeleteSnapshotRequest;
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
+import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
+//import org.elasticsearch.common.collect.ImmutableList;
+//import org.elasticsearch.common.settings.ImmutableSettings;
 
 /*import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -40,7 +59,7 @@ import net.minidev.json.*;
 import net.minidev.json.parser.*;
 
 public class ElasticClient {
-
+	private Logger logger = LogManager.getLogger(DatabaseServlet.class.getName());
 	public int insertLog(JSONObject json,int lastInsertedRecordID,Node node) {
 		NodeClient client = (NodeClient)node.client();
 		//TransportClient client = (TransportClient)node.client();
@@ -56,6 +75,15 @@ public class ElasticClient {
 		String message;
 		JSONArray rows = (JSONArray)json.get("row");
 		JSONArray cols = (JSONArray)json.get("col");
+		//GetIndexRequest request = new GetIndexRequest();
+		IndicesExistsRequest request = new IndicesExistsRequest();
+		request.indices("logs");
+		boolean exists = client.admin().indices().exists(request).actionGet().isExists();
+		if(exists)
+			client.admin().indices().open(new OpenIndexRequest("logs"));
+		else
+			client.admin().indices().create(new CreateIndexRequest("logs"));
+		System.out.println("Opened");
 		if(rows != null && rows.size() > 0) {
 			BulkProcessor bulkProcessor = BulkProcessor.builder(
 				client,  
@@ -213,6 +241,11 @@ public class ElasticClient {
 	public JSONObject search(int[] idList,String filterCol,String filterStr,String sortCol,Boolean isAscending,int paginatedBy,int start,Node node) {
 		System.out.println("in search method");
 		NodeClient client = (NodeClient)node.client();
+		IndicesExistsRequest request = new IndicesExistsRequest();
+		request.indices("logs");
+		boolean exists = client.admin().indices().exists(request).actionGet().isExists();
+		if(!exists)
+			return null;
 		//TransportClient client = (TransportClient)node.client();
 		String ids = String.valueOf(idList[0]);
 		for(int i = 1;i < idList.length;i++)
@@ -369,6 +402,113 @@ public class ElasticClient {
 		long deleted = response.getDeleted();
 	}
 	
+	
+	public boolean isRepositoryExist(Client client, String repositoryName) {
+		boolean result = false;
+		try {
+			List<RepositoryMetaData> repositories = client.admin().cluster().prepareGetRepositories().get().repositories();
+			if(repositories.size() > 0){
+				for(RepositoryMetaData repo :repositories)
+					result = repositoryName.equals(repo.name())?true:false;
+			}
+		} catch (Exception ex){
+			logger.error("Exception in getRepository method: " + ex.toString());
+		} finally {
+			return result;
+		}
+	}
+	
+	
+	public void createRepository(Client client, String repositoryName,String path, boolean compress) {
+		try {
+			if(!isRepositoryExist(client, repositoryName)) {
+			Settings settings = Settings.builder()
+				.put("location", path + repositoryName)
+				.put("compress", compress).build();
+			client.admin().cluster().preparePutRepository(repositoryName)
+				.setType("fs").setSettings(settings).get();
+			logger.info("Repository was created.");
+			} else {
+				System.out.println("Repo Already exists");
+				logger.info(repositoryName + " repository already exists");
+			}
+		} catch(Exception ex){
+			logger.error("Exception in createRepository method: " + ex.toString());
+		}
+	}
+	
+	public void deleteRepository(Client client, String repositoryName){
+		try {
+			if (isRepositoryExist(client, repositoryName)) {
+				client.admin().cluster().prepareDeleteRepository(repositoryName).execute().actionGet();
+				logger.info(repositoryName + " repository has been deleted.");
+			}
+		} catch (Exception ex){
+			logger.error("Exception in deleteRepository method: " + ex.toString());
+		}
+	}
+	
+	
+	public boolean isSnapshotExist(Client client, String repositoryName, String snapshotName){
+		boolean result = false;
+		try {
+			List<SnapshotInfo> snapshotInfo = client.admin().cluster().prepareGetSnapshots(repositoryName).get().getSnapshots();
+			if(snapshotInfo.size() > 0){
+				for(SnapshotInfo snapshot :snapshotInfo)
+					result = snapshotName.equals(snapshot.snapshotId().getName())?true:false;
+			}
+		} catch (Exception ex) {
+			logger.error("Exception in getSnapshot method: " + ex.toString());
+		} finally {
+			return result;
+		}
+	}
+	
+	public void archive(Node node) {
+		NodeClient client = (NodeClient)node.client();
+		String repositoryName = "mylogs";
+		String snapshotName = "logs1";
+		String indexName = "logs";
+		if(!isRepositoryExist(client, repositoryName))
+			createRepository(client,repositoryName,"D:\\ES Backup\\",true);
+		if(isRepositoryExist(client, repositoryName) && isSnapshotExist(client,repositoryName,snapshotName))
+			client.admin().cluster().deleteSnapshot(new DeleteSnapshotRequest(repositoryName, snapshotName));
+			//client.admin().cluster().prepareDeleteSnapshot(repositoryName, snapshotName));
+			//client.admin().cluster().snapshot().deleteRepositoryAsync(request, listener); 
+		CreateSnapshotResponse createSnapshotResponse = null;
+		try {
+			Thread.sleep(1000);
+			createSnapshotResponse = client.admin().cluster()
+				.prepareCreateSnapshot(repositoryName, snapshotName)
+				.setWaitForCompletion(true)
+				.setIndices(indexName).get();
+			System.out.println("Snapshot created");
+			client.admin().indices().delete(new DeleteIndexRequest(indexName)).actionGet();
+			System.out.println("logs archived");
+			logger.info("Snapshot was created.");
+		} catch (Exception ex){
+			logger.error("Exception in createSnapshot method: " + ex.toString());
+		}
+	}
+	
+	public void restore(Node node) {
+		NodeClient client = (NodeClient)node.client();
+		//CloseIndexRequest request = new CloseIndexRequest("logs"); 
+		String repositoryName = "mylogs";
+		String snapshotName = "logs1";
+		RestoreSnapshotResponse restoreSnapshotResponse = null;
+		try {
+			//if(isRepositoryExist(client, repositoryName) && isSnapshotExist(client, repositoryName, snapshotName)){
+			client.admin().indices().close(new CloseIndexRequest("logs"));
+			//CloseIndexRequest Close_request = new CloseIndexRequest("logs"); 
+			RestoreSnapshotRequest restoreSnapshotRequest = new RestoreSnapshotRequest(repositoryName, snapshotName);
+			restoreSnapshotResponse = client.admin().cluster().restoreSnapshot(restoreSnapshotRequest).get();
+			logger.info("Snapshot was restored.");
+			//}
+		} catch (Exception ex) {
+		logger.error("Exception in restoreSnapshot method: " + ex.toString());
+		}
+	}
 	
 	/*public static void main(String[] args) {
 		ElasticClient elasticClient = new ElasticClient();
