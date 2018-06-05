@@ -62,6 +62,7 @@ public class DatabaseServlet extends HttpServlet{
 	private static JSONObject jsonobj = null;
 	private static Connection conn;
 	private static int lastInsertedRecordID = 0;
+	private static int restoreID;
 	static Node node;
 	private static Connection postgresConnection;
 	//private static Timer timer = new Timer();
@@ -540,7 +541,8 @@ public class DatabaseServlet extends HttpServlet{
 				case ARCHIVE: {
 					ElasticClient elasticClient = new ElasticClient();
 					elasticClient.archive(node);
-					//lastInsertedRecordID = 0;
+					restoreID = lastInsertedRecordID;
+					lastInsertedRecordID = 0;
 					/*CreateSnapshotResponse createSnapshotResponse = null;
 					try {
 						createSnapshotResponse = client.admin().cluster()
@@ -556,6 +558,7 @@ public class DatabaseServlet extends HttpServlet{
 				case RESTORE: {
 					ElasticClient elasticClient = new ElasticClient();
 					elasticClient.restore(node);
+					lastInsertedRecordID = restoreID;
 				}
 				break;
 			}

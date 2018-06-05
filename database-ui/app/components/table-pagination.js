@@ -63,6 +63,7 @@ export default Ember.Component.extend({
             "stop" : j,
           },
           success: function(resp){
+            alert(resp);
             if(JSON.parse(resp).row == null) {
               //alert(JSON.parse(resp).row);
               that.set('isPresent',false);
@@ -83,6 +84,8 @@ export default Ember.Component.extend({
   }),
 
   isPaginated:Ember.computed('items','archived','paginatedItems','pageCount', function(){
+    alert(this.get('archived'));
+    //alert(this.get('items'));
     if((this.get('page') > this.get('numberOfPages'))) {
       this.set('page',1);
     }
@@ -298,7 +301,6 @@ export default Ember.Component.extend({
         },success : function(resp) {
           alert('data successfully archived');
           that.set('archived',true);
-          //alert(that.get('archived'));
           that.set('isPresent',false);
           //that.refresh();
         },error : function(error){

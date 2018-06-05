@@ -29,6 +29,9 @@ export default Controller.extend({
   actions : {
     display() {
       this.set('archived',false);
+      //alert(this.get('archived'));
+      //this.set('isPresent',true);
+      //this.set('isPaginated',true);
       var table_name = this.get('table_name');
       if(table_name !== null  && table_name != undefined && table_name != '') {
         var that  = this;
@@ -47,7 +50,7 @@ export default Controller.extend({
             "sortProperties" : that.get('sortProperties')
           }
         }).then(function(resp){
-            //alert(resp);
+            //alert("resp is "+ resp);
             var table = document.getElementById("table");
             if(table != null) {
               var rowCount = table.rows.length;
