@@ -78,6 +78,15 @@
   {{/modal-dialog}}
 {{/if}}
 {{#if isPaginated}}
+  {{#if archived}}
+  {{else}}
+    <br/>
+    <center>
+    {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name"}}
+    {{input type="text" value=filterValue name="filterValue" id="filterValue" placeholder="Enter filter Value"}}
+    </center>
+    <br/>
+  {{/if}}
   {{#if loading}}
     Loadddinggg
   {{else}}
@@ -88,11 +97,6 @@
       <button id = "export-button" name = "exp" class = "right_buttons" {{action "initiateExport"}}> Export</button>
       <button id = "delete-button" name ="delete" class = "right_buttons" {{action "delete"}}> Delete</button>
       <button id = "exportEmailButton" class = "right_buttons" {{action "exportEmail"}}> Send as Attachment</button>
-      <br/>
-      <center>
-      {{input type="text" list="cols" id="filterCol" name="filterCol" value=filterCol placeholder="Enter column name"}}
-      {{input type="text" value=filterValue name="filterValue" id="filterValue" placeholder="Enter filter Value"}}
-      </center>
       <br/>
       <datalist id="cols">
     		{{#each cols as |col|}}

@@ -41,8 +41,6 @@ export default Ember.Component.extend({
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
     var j = i + parseInt(this.get('paginateBy'));
-    //alert(this.get('archived'));
-    //alert(this.get('items'));
     if(this.get('items') == null || this.get('archived') == true)
       return false;
     else {
@@ -63,7 +61,6 @@ export default Ember.Component.extend({
             "stop" : j,
           },
           success: function(resp){
-            alert(resp);
             if(JSON.parse(resp).row == null) {
               //alert(JSON.parse(resp).row);
               that.set('isPresent',false);
@@ -84,8 +81,6 @@ export default Ember.Component.extend({
   }),
 
   isPaginated:Ember.computed('items','archived','paginatedItems','pageCount', function(){
-    alert(this.get('archived'));
-    //alert(this.get('items'));
     if((this.get('page') > this.get('numberOfPages'))) {
       this.set('page',1);
     }
