@@ -29,6 +29,7 @@ export default Ember.Component.extend({
   paginateBy: 10,
   pageCount: 0,
   isPresent: false,
+  archived: false,
   startPageNumber: 1,
   start : 0,
   end : 0,
@@ -40,8 +41,9 @@ export default Ember.Component.extend({
     this.set('val',this.get('filterValue'));
     var i = (parseInt(this.get('page')) - 1) * parseInt(this.get('paginateBy'));
     var j = i + parseInt(this.get('paginateBy'));
-    alert(this.get('archived'));
-    if('items' == null || this.get('archived') == true)
+    //alert(this.get('archived'));
+    //alert(this.get('items'));
+    if(this.get('items') == null || this.get('archived') == true)
       return false;
     else {
       var that  = this;
@@ -288,6 +290,7 @@ export default Ember.Component.extend({
 
     snap() {
       var that = this;
+      this.set('archived',true);
       Ember.$.ajax({
         url: "/archive",
         type: "POST",
@@ -295,7 +298,7 @@ export default Ember.Component.extend({
         },success : function(resp) {
           alert('data successfully archived');
           that.set('archived',true);
-          alert(that.get('archived'));
+          //alert(that.get('archived'));
           that.set('isPresent',false);
           //that.refresh();
         },error : function(error){
