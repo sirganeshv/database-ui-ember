@@ -540,7 +540,7 @@ public class DatabaseServlet extends HttpServlet{
 				case ARCHIVE: {
 					ElasticClient elasticClient = new ElasticClient();
 					elasticClient.archive(node);
-					lastInsertedRecordID = 0;
+					//lastInsertedRecordID = 0;
 					/*CreateSnapshotResponse createSnapshotResponse = null;
 					try {
 						createSnapshotResponse = client.admin().cluster()
